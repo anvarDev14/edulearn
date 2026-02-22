@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: edulearn_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/edulearn.db
+      - BOT_TOKEN=${BOT_TOKEN}
+      - SECRET_KEY=${SECRET_KEY}
+      - ADMIN_IDS=${ADMIN_IDS}
+      - MONTHLY_PRICE=${MONTHLY_PRICE:-50000}
+      - YEARLY_PRICE=${YEARLY_PRICE:-500000}
+      - PAYMENT_CARD=${PAYMENT_CARD}
+      - PAYMENT_HOLDER=${PAYMENT_HOLDER}
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+    networks:
+      - edulearn_network
+
+  bot:
+    build: ./bot
+    container_name: edulearn_bot
+    restart: always
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+      - WEBAPP_URL=${WEBAPP_URL}
+    depends_on:
+      - backend
+    networks:
+      - edulearn_network
+
+  frontend:
+    build: 
+      context: ./frontend
+      args:
+        - VITE_API_URL=${API_URL}
+    container_name: edulearn_frontend
+    restart: always
+    ports:
+      - "3000:80"
+    networks:
+      - edulearn_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: edulearn_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - edulearn_network
+
+volumes:
+  data:
+  uploads:
+
+networks:
+  edulearn_network:
+    driver: bridge
