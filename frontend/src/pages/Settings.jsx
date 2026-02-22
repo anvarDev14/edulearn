@@ -30,7 +30,7 @@ export default function Settings() {
             {isDark ? <Moon size={20} /> : <Sun size={20} />}
             <span>Mavzu</span>
           </div>
-          <span className="text-slate-400">{isDark ? 'Qorong'i' : 'Yorug'}</span>
+          <span className="text-slate-400">{isDark ? 'Tun' : 'Kun'}</span>
         </button>
       </div>
       
