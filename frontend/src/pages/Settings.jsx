@@ -1,97 +1,152 @@
-import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Moon, Sun, Globe, Bell, Shield, HelpCircle, LogOut } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
+import { useState, useEffect } from 'react'
+import { Plus, Trash2, Pin, Image, Video, FileText, X } from 'lucide-react'
+import { adminAPI, newsAPI } from '../../api'
+import Loader from '../../components/common/Loader'
 
-export default function Settings() {
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
-  const { isDark, toggleTheme } = useTheme()
-  
-  const handleLogout = () => {
-    if (confirm("Chiqishni xohlaysizmi?")) {
-      logout()
-      navigate('/')
+export default function AdminSettings() {
+  const [news, setNews] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showNewsModal, setShowNewsModal] = useState(false)
+
+  const [newsForm, setNewsForm] = useState({
+    title: '',
+    content: '',
+    media_type: 'text',
+    media_url: '',
+    is_pinned: false
+  })
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const loadData = async () => {
+    try {
+      const res = await newsAPI.getAll(0, 50)
+      setNews(res.data)
+    } catch (error) {
+      console.error('Error:', error)
+    } finally {
+      setLoading(false)
     }
   }
-  
+
+  const createNews = async () => {
+    if (!newsForm.title) return alert('Sarlavhani kiriting')
+    try {
+      await adminAPI.createNews(newsForm)
+      setShowNewsModal(false)
+      setNewsForm({ title: '', content: '', media_type: 'text', media_url: '', is_pinned: false })
+      loadData()
+      alert('Yangilik qo\'shildi!')
+    } catch (error) {
+      alert('Xatolik: ' + (error.response?.data?.detail || 'Server xatosi'))
+    }
+  }
+
+  const deleteNews = async (id) => {
+    if (!confirm("O'chirishni xohlaysizmi?")) return
+    try {
+      await adminAPI.deleteNews(id)
+      loadData()
+    } catch (error) {
+      alert('Xatolik')
+    }
+  }
+
+  const togglePin = async (id) => {
+    try {
+      await adminAPI.toggleNewsPin(id)
+      loadData()
+    } catch (error) {
+      alert('Xatolik')
+    }
+  }
+
+  if (loading) return <Loader />
+
   return (
-    <div className="min-h-screen p-4">
-      <h1 className="text-2xl font-bold mb-6">⚙️ Sozlamalar</h1>
-      
-      {/* Theme */}
-      <div className="bg-slate-800 rounded-2xl mb-4">
-        <button
-          onClick={toggleTheme}
-          className="w-full p-4 flex items-center justify-between"
-        >
-          <div className="flex items-center gap-3">
-            {isDark ? <Moon size={20} /> : <Sun size={20} />}
-            <span>Mavzu</span>
+    <div className="p-4 pb-20">
+      <h1 className="text-2xl font-bold text-white mb-6">⚙️ Sozlamalar</h1>
+
+      {/* News */}
+      <div className="bg-slate-800 rounded-xl p-4 mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-white">📰 Yangiliklar</h3>
+          <button onClick={() => setShowNewsModal(true)} className="bg-blue-500 p-2 rounded-lg flex items-center gap-1">
+            <Plus size={18} className="text-white" />
+            <span className="text-white text-sm">Qo'shish</span>
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          {news.length > 0 ? news.map(item => (
+            <div key={item.id} className="bg-slate-700 rounded-lg p-3 flex items-center gap-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  {item.media_type === 'video' && <Video size={14} className="text-blue-400" />}
+                  {item.media_type === 'image' && <Image size={14} className="text-green-400" />}
+                  <p className="text-white text-sm font-medium">{item.title}</p>
+                  {item.is_pinned && <Pin size={12} className="text-blue-400" />}
+                </div>
+                <p className="text-slate-400 text-xs mt-1">{item.views_count || 0} ko'rishlar</p>
+              </div>
+              <button onClick={() => togglePin(item.id)} className={item.is_pinned ? 'text-blue-400' : 'text-slate-500'}>
+                <Pin size={16} />
+              </button>
+              <button onClick={() => deleteNews(item.id)} className="text-red-400">
+                <Trash2 size={16} />
+              </button>
+            </div>
+          )) : <p className="text-slate-500 text-center py-4">Yangiliklar yo'q</p>}
+        </div>
+      </div>
+
+      {/* News Modal */}
+      {showNewsModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white">📰 Yangi yangilik</h2>
+              <button onClick={() => setShowNewsModal(false)} className="text-slate-400"><X size={24} /></button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-slate-400 text-sm">Sarlavha *</label>
+                <input type="text" placeholder="Yangilik sarlavhasi" value={newsForm.title} onChange={e => setNewsForm({...newsForm, title: e.target.value})} className="w-full bg-slate-700 rounded-xl p-3 text-white mt-1" />
+              </div>
+              <div>
+                <label className="text-slate-400 text-sm">Matn</label>
+                <textarea placeholder="Yangilik matni..." value={newsForm.content} onChange={e => setNewsForm({...newsForm, content: e.target.value})} className="w-full bg-slate-700 rounded-xl p-3 text-white mt-1" rows={4} />
+              </div>
+              <div>
+                <label className="text-slate-400 text-sm">Media turi</label>
+                <div className="flex gap-2 mt-1">
+                  {['text', 'image', 'video'].map(type => (
+                    <button key={type} onClick={() => setNewsForm({...newsForm, media_type: type})} className={`flex-1 py-2 rounded-lg ${newsForm.media_type === type ? 'bg-blue-500' : 'bg-slate-700'} text-white text-sm`}>
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {newsForm.media_type !== 'text' && (
+                <div>
+                  <label className="text-slate-400 text-sm">{newsForm.media_type === 'image' ? 'Rasm URL' : 'Video URL'}</label>
+                  <input type="url" placeholder="https://..." value={newsForm.media_url} onChange={e => setNewsForm({...newsForm, media_url: e.target.value})} className="w-full bg-slate-700 rounded-xl p-3 text-white mt-1" />
+                </div>
+              )}
+              <label className="flex items-center gap-2 text-white">
+                <input type="checkbox" checked={newsForm.is_pinned} onChange={e => setNewsForm({...newsForm, is_pinned: e.target.checked})} className="w-5 h-5" />
+                <Pin size={16} className="text-blue-400" /> Pin qilish
+              </label>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setShowNewsModal(false)} className="flex-1 py-3 bg-slate-700 rounded-xl text-white">Bekor</button>
+              <button onClick={createNews} className="flex-1 py-3 bg-blue-500 rounded-xl text-white font-bold">Qo'shish</button>
+            </div>
           </div>
-          <span className="text-slate-400">{isDark ? 'Tun' : 'Kun'}</span>
-        </button>
-      </div>
-      
-      {/* Language */}
-      <div className="bg-slate-800 rounded-2xl mb-4">
-        <button className="w-full p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Globe size={20} />
-            <span>Til</span>
-          </div>
-          <span className="text-slate-400">O'zbek</span>
-        </button>
-      </div>
-      
-      {/* Notifications */}
-      <div className="bg-slate-800 rounded-2xl mb-4">
-        <button className="w-full p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Bell size={20} />
-            <span>Bildirishnomalar</span>
-          </div>
-          <div className="w-10 h-6 bg-blue-500 rounded-full relative">
-            <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full" />
-          </div>
-        </button>
-      </div>
-      
-      {/* Help & Support */}
-      <div className="bg-slate-800 rounded-2xl mb-4">
-        <a 
-          href="https://t.me/edulearn_support" 
-          target="_blank"
-          className="w-full p-4 flex items-center gap-3"
-        >
-          <HelpCircle size={20} />
-          <span>Yordam</span>
-        </a>
-      </div>
-      
-      {/* Privacy */}
-      <div className="bg-slate-800 rounded-2xl mb-4">
-        <button className="w-full p-4 flex items-center gap-3">
-          <Shield size={20} />
-          <span>Maxfiylik siyosati</span>
-        </button>
-      </div>
-      
-      {/* Logout */}
-      <motion.button
-        onClick={handleLogout}
-        className="w-full bg-red-500/20 text-red-500 rounded-2xl p-4 flex items-center justify-center gap-2"
-        whileHover={{ scale: 1.02 }}
-      >
-        <LogOut size={20} />
-        Chiqish
-      </motion.button>
-      
-      {/* Version */}
-      <p className="text-center text-slate-500 text-sm mt-6">
-        EduLearn v1.0.0
-      </p>
+        </div>
+      )}
     </div>
   )
 }
