@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, Pin, Image, Video, FileText, X } from 'lucide-react'
-import { adminAPI, newsAPI } from '../../api'
-import Loader from '../../components/common/Loader'
+
+// MANA SHU IKKI QATOR TO'G'RILANDI: "../../" o'rniga "../" qilingandi
+import { adminAPI, newsAPI } from '../api'
+import Loader from '../components/common/Loader'
 
 export default function AdminSettings() {
   const [news, setNews] = useState([])
