@@ -84,7 +84,7 @@ export const adminAPI = {
   // News
   createNews: (data) => api.post('/news', data),
   deleteNews: (id) => api.delete(`/news/${id}`),
-  toggleNewsPin: (id) => api.post(`/news/${id}/pin`)
+  toggleNewsPin: (id) => api.post(`/news/${id}/pin`),
 
   // Modules
   getModules: () => api.get('/admin/modules'),
