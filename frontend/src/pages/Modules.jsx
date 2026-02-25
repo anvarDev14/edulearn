@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, Crown, ChevronDown, ChevronUp, Video } from 'lucide-react'
-import { adminAPI } from '../../api'
-import Loader from '../../components/common/Loader'
+import { adminAPI } from '../api'
+import Loader from '../components/common/Loader'
 
 export default function AdminModules() {
   const [modules, setModules] = useState([])
