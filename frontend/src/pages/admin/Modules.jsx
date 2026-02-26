@@ -3,6 +3,7 @@ import { Plus, Trash2, Crown, ChevronDown, ChevronUp, Video } from 'lucide-react
 import { adminAPI } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 import Loader from '../../components/common/Loader'
+import { AdminBottomNav } from './Dashboard'
 
 export default function AdminModules() {
   const { user } = useAuth()
@@ -14,25 +15,15 @@ export default function AdminModules() {
   const [expandedModule, setExpandedModule] = useState(null)
 
   const [moduleForm, setModuleForm] = useState({
-    title: '',
-    description: '',
-    emoji: '📚',
-    is_premium: false
+    title: '', description: '', emoji: '📚', is_premium: false
   })
 
   const [lessonForm, setLessonForm] = useState({
-    title: '',
-    description: '',
-    content: '',
-    video_url: '',
-    duration_min: 15,
-    xp_reward: 50,
-    is_premium: false
+    title: '', description: '', content: '', video_url: '',
+    duration_min: 15, xp_reward: 50, is_premium: false
   })
 
-  useEffect(() => {
-    loadModules()
-  }, [])
+  useEffect(() => { loadModules() }, [])
 
   const loadModules = async () => {
     try {
@@ -69,25 +60,14 @@ export default function AdminModules() {
 
   const openLessonModal = (module) => {
     setSelectedModule(module)
-    setLessonForm({
-      title: '',
-      description: '',
-      content: '',
-      video_url: '',
-      duration_min: 15,
-      xp_reward: 50,
-      is_premium: false
-    })
+    setLessonForm({ title: '', description: '', content: '', video_url: '', duration_min: 15, xp_reward: 50, is_premium: false })
     setShowLessonModal(true)
   }
 
   const createLesson = async () => {
     if (!lessonForm.title) return alert('Dars nomini kiriting')
     try {
-      await adminAPI.createLesson({
-        ...lessonForm,
-        module_id: selectedModule.id
-      })
+      await adminAPI.createLesson({ ...lessonForm, module_id: selectedModule.id })
       setShowLessonModal(false)
       loadModules()
       alert('Dars qo\'shildi!')
@@ -106,26 +86,17 @@ export default function AdminModules() {
     }
   }
 
-  // Admin tekshiruvi
   if (!user?.is_admin) {
-    return (
-      <div className="p-4 text-center">
-        <p className="text-red-500 text-xl">🚫 Ruxsat yo'q</p>
-        <p className="text-slate-400 mt-2">Bu sahifa faqat adminlar uchun</p>
-      </div>
-    )
+    return <div className="p-4 text-center"><p className="text-red-500 text-xl">🚫 Ruxsat yo'q</p></div>
   }
 
   if (loading) return <Loader />
 
   return (
-    <div className="p-4 pb-20">
+    <div className="p-4 pb-24">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-white">📚 Modullar</h1>
-        <button
-          onClick={() => setShowModuleModal(true)}
-          className="bg-blue-500 p-2 rounded-xl flex items-center gap-2"
-        >
+        <button onClick={() => setShowModuleModal(true)} className="bg-blue-500 p-2 rounded-xl flex items-center gap-2">
           <Plus size={20} className="text-white" />
           <span className="text-white text-sm">Modul</span>
         </button>
@@ -134,10 +105,7 @@ export default function AdminModules() {
       <div className="space-y-4">
         {modules.map(module => (
           <div key={module.id} className="bg-slate-800 rounded-xl overflow-hidden">
-            <div
-              className="p-4 flex items-center gap-4 cursor-pointer"
-              onClick={() => setExpandedModule(expandedModule === module.id ? null : module.id)}
-            >
+            <div className="p-4 flex items-center gap-4 cursor-pointer" onClick={() => setExpandedModule(expandedModule === module.id ? null : module.id)}>
               <span className="text-3xl">{module.emoji}</span>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
@@ -146,16 +114,10 @@ export default function AdminModules() {
                 </div>
                 <p className="text-slate-400 text-sm">{module.lessons?.length || 0} ta dars</p>
               </div>
-              <button
-                onClick={(e) => { e.stopPropagation(); openLessonModal(module); }}
-                className="p-2 bg-green-500 rounded-lg"
-              >
+              <button onClick={(e) => { e.stopPropagation(); openLessonModal(module); }} className="p-2 bg-green-500 rounded-lg">
                 <Plus size={18} className="text-white" />
               </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); deleteModule(module.id); }}
-                className="p-2 text-red-500"
-              >
+              <button onClick={(e) => { e.stopPropagation(); deleteModule(module.id); }} className="p-2 text-red-500">
                 <Trash2 size={18} />
               </button>
               {expandedModule === module.id ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
@@ -174,9 +136,7 @@ export default function AdminModules() {
                         {lesson.video_url && <Video size={12} className="text-blue-400" />}
                       </div>
                     </div>
-                    <button onClick={() => deleteLesson(lesson.id)} className="p-1 text-red-400">
-                      <Trash2 size={16} />
-                    </button>
+                    <button onClick={() => deleteLesson(lesson.id)} className="p-1 text-red-400"><Trash2 size={16} /></button>
                   </div>
                 )) : <p className="text-slate-500 text-center py-4">Darslar yo'q</p>}
               </div>
@@ -235,7 +195,6 @@ export default function AdminModules() {
               <div>
                 <label className="text-slate-400 text-sm flex items-center gap-2"><Video size={14} className="text-blue-400" /> Video URL (YouTube)</label>
                 <input type="url" placeholder="https://www.youtube.com/watch?v=..." value={lessonForm.video_url} onChange={e => setLessonForm({...lessonForm, video_url: e.target.value})} className="w-full bg-slate-700 rounded-xl p-3 text-white mt-1" />
-                <p className="text-slate-500 text-xs mt-1">YouTube linkini to'liq kiriting</p>
               </div>
               <div>
                 <label className="text-slate-400 text-sm">Dars matni</label>
@@ -263,6 +222,8 @@ export default function AdminModules() {
           </div>
         </div>
       )}
+
+      <AdminBottomNav />
     </div>
   )
 }

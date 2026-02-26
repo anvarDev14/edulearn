@@ -1,240 +1,263 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Clock, CheckCircle, XCircle, Zap } from 'lucide-react'
+import { ArrowLeft, Clock, CheckCircle, XCircle, Trophy } from 'lucide-react'
 import { quizAPI } from '../api'
-import { useAuth } from '../context/AuthContext'
-import LevelUpModal from '../components/gamification/LevelUpModal'
 import Loader from '../components/common/Loader'
 
 export default function Quiz() {
   const { quizId } = useParams()
   const navigate = useNavigate()
-  const { updateUser } = useAuth()
+
   const [quiz, setQuiz] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [currentQ, setCurrentQ] = useState(0)
+  const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState({})
+  const [timeLeft, setTimeLeft] = useState(0)
+  const [submitted, setSubmitted] = useState(false)
   const [result, setResult] = useState(null)
   const [submitting, setSubmitting] = useState(false)
-  const [levelUp, setLevelUp] = useState(null)
-  const [timeLeft, setTimeLeft] = useState(0)
-  
+
   useEffect(() => {
     loadQuiz()
   }, [quizId])
-  
+
+  // Timer
   useEffect(() => {
-    if (quiz && timeLeft > 0 && !result) {
-      const timer = setInterval(() => {
-        setTimeLeft(t => {
-          if (t <= 1) {
-            submitQuiz()
-            return 0
-          }
-          return t - 1
-        })
-      }, 1000)
-      return () => clearInterval(timer)
-    }
-  }, [quiz, timeLeft, result])
-  
+    if (!quiz || submitted || timeLeft <= 0) return
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          handleSubmit()
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [quiz, submitted, timeLeft])
+
   const loadQuiz = async () => {
     try {
       const res = await quizAPI.getQuiz(quizId)
       setQuiz(res.data)
-      setTimeLeft(res.data.time_limit_sec)
+      setTimeLeft(res.data.time_limit || 120)
     } catch (error) {
-      console.error('Error:', error)
+      console.error(error)
+      alert('Quiz topilmadi')
+      navigate(-1)
     } finally {
       setLoading(false)
     }
   }
-  
-  const selectAnswer = (questionId, answer) => {
-    setAnswers(prev => ({ ...prev, [questionId]: answer }))
+
+  const selectAnswer = (questionId, optionIndex) => {
+    if (submitted) return
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: optionIndex
+    }))
   }
-  
-  const submitQuiz = async () => {
+
+  const handleSubmit = async () => {
     if (submitting) return
     setSubmitting(true)
-    
+
     try {
-      const answersArray = Object.entries(answers).map(([qId, ans]) => ({
-        question_id: parseInt(qId),
-        answer: ans
-      }))
-      
-      const res = await quizAPI.submitQuiz(quizId, answersArray)
+      // Javoblarni API ga yuborish
+      const res = await quizAPI.submitQuiz(quizId, answers)
       setResult(res.data)
-      
-      if (res.data.level_up) {
-        setLevelUp({
-          level: res.data.new_level,
-          badge: res.data.level_info.badge
-        })
-      }
-      
-      updateUser({
-        total_xp: res.data.level_info.total_xp,
-        level: res.data.new_level
-      })
+      setSubmitted(true)
     } catch (error) {
-      console.error('Error:', error)
+      alert('Xatolik: ' + (error.response?.data?.detail || 'Server xatosi'))
     } finally {
       setSubmitting(false)
     }
   }
-  
-  const formatTime = (sec) => {
-    const m = Math.floor(sec / 60)
-    const s = sec % 60
-    return `${m}:${s.toString().padStart(2, '0')}`
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
   }
-  
+
   if (loading) return <Loader />
-  if (!quiz) return null
-  
-  const question = quiz.questions[currentQ]
-  
-  // Result screen
-  if (result) {
+
+  if (!quiz) {
     return (
-      <div className="min-h-screen p-4">
-        <motion.div 
-          className="bg-slate-800 rounded-2xl p-6 text-center"
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-        >
-          <div className="text-6xl mb-4">
-            {result.passed ? '🎉' : '😔'}
-          </div>
-          
-          <h2 className="text-2xl font-bold mb-2">
-            {result.passed ? 'Tabriklaymiz!' : "Qayta urinib ko'ring"}
-          </h2>
-          
-          <p className="text-slate-400 mb-6">
-            {result.correct_answers}/{result.total_questions} to'g'ri ({result.score}%)
-          </p>
-          
-          {result.passed && (
-            <div className="bg-green-500/20 rounded-xl p-4 mb-6">
-              <p className="text-green-400 font-bold flex items-center justify-center gap-2">
-                <Zap size={20} /> +{result.xp_gained} XP
-              </p>
-            </div>
-          )}
-          
-          <button
-            onClick={() => navigate(-1)}
-            className="w-full bg-blue-500 py-3 rounded-xl font-bold"
-          >
-            Davom etish
-          </button>
-        </motion.div>
-        
-        <LevelUpModal 
-          isOpen={!!levelUp}
-          onClose={() => setLevelUp(null)}
-          newLevel={levelUp?.level}
-          badge={levelUp?.badge}
-        />
+      <div className="p-4 text-center text-red-500">
+        Quiz topilmadi
       </div>
     )
   }
-  
-  return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <div className="bg-slate-800 p-4 flex items-center justify-between">
-        <button onClick={() => navigate(-1)} className="p-2">
-          <ArrowLeft size={24} />
-        </button>
-        <h1 className="font-bold">{quiz.title}</h1>
-        <div className={`flex items-center gap-1 ${timeLeft < 60 ? 'text-red-500' : 'text-slate-400'}`}>
-          <Clock size={18} />
-          {formatTime(timeLeft)}
+
+  const questions = quiz.questions || []
+  const currentQ = questions[currentQuestion]
+  const progress = ((currentQuestion + 1) / questions.length) * 100
+
+  // Natija ko'rsatish
+  if (submitted && result) {
+    const passed = result.score >= quiz.passing_score
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="bg-slate-800 rounded-2xl p-8 text-center max-w-md w-full">
+          <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 ${
+            passed ? 'bg-green-500' : 'bg-red-500'
+          }`}>
+            {passed ? (
+              <Trophy size={48} className="text-white" />
+            ) : (
+              <XCircle size={48} className="text-white" />
+            )}
+          </div>
+
+          <h1 className="text-2xl font-bold text-white mb-2">
+            {passed ? 'Tabriklaymiz! 🎉' : 'Urinib ko\'ring 😔'}
+          </h1>
+
+          <p className="text-slate-400 mb-6">
+            {passed ? 'Siz testdan muvaffaqiyatli o\'tdingiz!' : 'Afsuski, o\'tish balidan past ball oldingiz.'}
+          </p>
+
+          <div className="bg-slate-700 rounded-xl p-4 mb-6">
+            <div className="text-4xl font-bold text-white mb-2">
+              {result.score}%
+            </div>
+            <p className="text-slate-400 text-sm">
+              {result.correct_count}/{result.total_questions} to'g'ri javob
+            </p>
+            {result.xp_earned > 0 && (
+              <p className="text-yellow-400 mt-2">
+                +{result.xp_earned} XP oldingiz!
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="w-full py-3 bg-blue-500 rounded-xl text-white font-bold"
+            >
+              Davom etish
+            </button>
+            {!passed && (
+              <button
+                onClick={() => {
+                  setSubmitted(false)
+                  setResult(null)
+                  setAnswers({})
+                  setCurrentQuestion(0)
+                  setTimeLeft(quiz.time_limit || 120)
+                }}
+                className="w-full py-3 bg-slate-700 rounded-xl text-white"
+              >
+                Qayta urinish
+              </button>
+            )}
+          </div>
         </div>
       </div>
-      
-      {/* Progress */}
-      <div className="p-4">
-        <div className="flex gap-1 mb-4">
-          {quiz.questions.map((_, i) => (
-            <div 
-              key={i}
-              className={`flex-1 h-1 rounded-full ${
-                i < currentQ ? 'bg-green-500' :
-                i === currentQ ? 'bg-blue-500' : 'bg-slate-700'
-              }`}
-            />
-          ))}
+    )
+  }
+
+  return (
+    <div className="min-h-screen pb-24">
+      {/* Header */}
+      <div className="bg-slate-800 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <button onClick={() => navigate(-1)} className="p-2 text-white">
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="font-bold text-white">{quiz.title}</h1>
+          <div className={`flex items-center gap-1 px-3 py-1 rounded-full ${
+            timeLeft < 30 ? 'bg-red-500 animate-pulse' : 'bg-slate-700'
+          }`}>
+            <Clock size={16} className="text-white" />
+            <span className="text-white font-mono">{formatTime(timeLeft)}</span>
+          </div>
         </div>
-        
-        <p className="text-slate-400 text-sm">
-          Savol {currentQ + 1}/{quiz.questions.length}
+
+        {/* Progress bar */}
+        <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-blue-500 transition-all"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <p className="text-slate-400 text-sm mt-2 text-center">
+          Savol {currentQuestion + 1}/{questions.length}
         </p>
       </div>
-      
+
       {/* Question */}
-      <div className="flex-1 p-4">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentQ}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-          >
-            <h2 className="text-xl font-bold mb-6">{question.question_text}</h2>
-            
-            <div className="space-y-3">
-              {question.options.map((option, i) => (
+      {currentQ && (
+        <div className="p-4">
+          <div className="bg-slate-800 rounded-xl p-6 mb-6">
+            <p className="text-white text-lg font-medium">{currentQ.question}</p>
+          </div>
+
+          {/* Options */}
+          <div className="space-y-3">
+            {currentQ.options?.map((option, idx) => {
+              const isSelected = answers[currentQ.id] === idx
+              return (
                 <button
-                  key={i}
-                  onClick={() => selectAnswer(question.id, option)}
-                  className={`w-full p-4 rounded-xl text-left transition ${
-                    answers[question.id] === option
-                      ? 'bg-blue-500 border-2 border-blue-400'
-                      : 'bg-slate-800 border-2 border-transparent hover:border-slate-600'
+                  key={idx}
+                  onClick={() => selectAnswer(currentQ.id, idx)}
+                  className={`w-full p-4 rounded-xl text-left flex items-center gap-4 transition ${
+                    isSelected
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-slate-800 text-white hover:bg-slate-700'
                   }`}
                 >
-                  {option}
+                  <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                    isSelected ? 'bg-white text-blue-500' : 'bg-slate-700'
+                  }`}>
+                    {String.fromCharCode(65 + idx)}
+                  </span>
+                  <span>{option}</span>
                 </button>
-              ))}
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-      
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Navigation */}
-      <div className="p-4 flex gap-3">
-        {currentQ > 0 && (
+      <div className="fixed bottom-0 left-0 right-0 bg-slate-800 border-t border-slate-700 p-4">
+        <div className="flex gap-3 max-w-lg mx-auto">
           <button
-            onClick={() => setCurrentQ(c => c - 1)}
-            className="flex-1 py-3 bg-slate-700 rounded-xl font-bold"
+            onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
+            disabled={currentQuestion === 0}
+            className="flex-1 py-3 bg-slate-700 rounded-xl text-white disabled:opacity-50"
           >
-            Orqaga
+            Oldingi
           </button>
-        )}
-        
-        {currentQ < quiz.questions.length - 1 ? (
-          <button
-            onClick={() => setCurrentQ(c => c + 1)}
-            disabled={!answers[question.id]}
-            className="flex-1 py-3 bg-blue-500 rounded-xl font-bold disabled:opacity-50"
-          >
-            Keyingi
-          </button>
-        ) : (
-          <button
-            onClick={submitQuiz}
-            disabled={submitting || Object.keys(answers).length < quiz.questions.length}
-            className="flex-1 py-3 bg-green-500 rounded-xl font-bold disabled:opacity-50"
-          >
-            {submitting ? 'Yuklanmoqda...' : 'Tugatish'}
-          </button>
-        )}
+
+          {currentQuestion < questions.length - 1 ? (
+            <button
+              onClick={() => setCurrentQuestion(prev => prev + 1)}
+              className="flex-1 py-3 bg-blue-500 rounded-xl text-white font-bold"
+            >
+              Keyingi
+            </button>
+          ) : (
+            <button
+              onClick={handleSubmit}
+              disabled={submitting || Object.keys(answers).length === 0}
+              className="flex-1 py-3 bg-green-500 rounded-xl text-white font-bold disabled:opacity-50"
+            >
+              {submitting ? 'Yuklanmoqda...' : 'Tugatish'}
+            </button>
+          )}
+        </div>
+
+        {/* Answered count */}
+        <p className="text-center text-slate-400 text-sm mt-2">
+          {Object.keys(answers).length}/{questions.length} savolga javob berildi
+        </p>
       </div>
     </div>
   )

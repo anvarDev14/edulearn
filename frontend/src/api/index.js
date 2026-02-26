@@ -80,6 +80,10 @@ export const adminAPI = {
   grantPremium: (userId, days) => api.post(`/admin/users/${userId}/grant-premium`, { days }),
   revokePremium: (userId) => api.post(`/admin/users/${userId}/revoke-premium`),
   toggleAdmin: (userId) => api.post(`/admin/users/${userId}/toggle-admin`),
+  getQuizzes: () => api.get('/admin/quizzes'),
+  createQuiz: (data) => api.post('/admin/quizzes', data),
+  addQuestion: (quizId, data) => api.post(`/admin/quizzes/${quizId}/questions`, data),
+  deleteQuiz: (id) => api.delete(`/admin/quizzes/${id}`),
 
   // News
   createNews: (data) => api.post('/news', data),

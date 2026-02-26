@@ -1,6 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
+import AdminQuizzes from './pages/admin/Quizzes'
+import Quiz from './pages/Quiz'
+
 
 // Pages
 import Home from './pages/Home'
@@ -52,7 +55,9 @@ function AppContent() {
         <Route path="/premium" element={<Premium />} />
         <Route path="/news" element={<News />} />
         <Route path="/settings" element={<Settings />} />
-        
+        <Route path="/admin/quizzes" element={<AdminQuizzes />} />
+        <Route path="/quiz/:quizId" element={<Quiz />} />
+
         {/* Admin Routes */}
         <Route path="/admin" element={
           <PrivateRoute adminOnly>
