@@ -1,99 +1,116 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { ArrowLeft, Play, CheckCircle, Clock, Zap } from 'lucide-react'
+import { ArrowLeft, Clock, Zap, Play, CheckCircle } from 'lucide-react'
 import { lessonsAPI } from '../api'
-import { useAuth } from '../context/AuthContext'
-import LevelUpModal from '../components/gamification/LevelUpModal'
 import Loader from '../components/common/Loader'
 
 export default function Lesson() {
   const { lessonId } = useParams()
   const navigate = useNavigate()
-  const { updateUser } = useAuth()
   const [lesson, setLesson] = useState(null)
   const [loading, setLoading] = useState(true)
   const [completing, setCompleting] = useState(false)
-  const [levelUp, setLevelUp] = useState(null)
-  
+
   useEffect(() => {
     loadLesson()
   }, [lessonId])
-  
+
   const loadLesson = async () => {
     try {
       const res = await lessonsAPI.getLesson(lessonId)
       setLesson(res.data)
     } catch (error) {
-      console.error('Error:', error)
-      if (error.response?.status === 403) {
-        navigate('/premium')
-      }
+      console.error(error)
     } finally {
       setLoading(false)
     }
   }
-  
+
+  const getEmbedUrl = (url) => {
+    if (!url) return null
+
+    // youtube.com/watch?v=VIDEO_ID
+    if (url.includes('youtube.com/watch')) {
+      const videoId = url.split('v=')[1]?.split('&')[0]
+      return `https://www.youtube.com/embed/${videoId}`
+    }
+
+    // youtu.be/VIDEO_ID
+    if (url.includes('youtu.be/')) {
+      const videoId = url.split('youtu.be/')[1]?.split('?')[0]
+      return `https://www.youtube.com/embed/${videoId}`
+    }
+
+    // Agar allaqachon embed bo'lsa
+    if (url.includes('youtube.com/embed')) {
+      return url
+    }
+
+    return url
+  }
+
   const completeLesson = async () => {
-    if (completing || lesson.is_completed) return
+    if (lesson?.is_completed) return
     setCompleting(true)
-    
     try {
-      const res = await lessonsAPI.completeLesson(lessonId)
-      
-      if (res.data.level_up) {
-        setLevelUp({
-          level: res.data.new_level,
-          badge: res.data.level_info.badge
-        })
-      }
-      
-      updateUser({
-        total_xp: res.data.total_xp,
-        level: res.data.new_level
-      })
-      
-      setLesson(prev => ({ ...prev, is_completed: true }))
-      
-      // Navigate to quiz if exists
-      if (lesson.quiz_id) {
-        setTimeout(() => navigate(`/quiz/${lesson.quiz_id}`), 1000)
-      }
+      await lessonsAPI.completeLesson(lessonId)
+      setLesson({ ...lesson, is_completed: true })
+      alert(`Tabriklaymiz! +${lesson.xp_reward} XP oldingiz!`)
     } catch (error) {
-      console.error('Error:', error)
+      alert('Xatolik: ' + (error.response?.data?.detail || 'Server xatosi'))
     } finally {
       setCompleting(false)
     }
   }
-  
+
   if (loading) return <Loader />
-  if (!lesson) return null
-  
+
+  if (!lesson) {
+    return (
+      <div className="p-4 text-center text-red-500">
+        Dars topilmadi
+      </div>
+    )
+  }
+
+  const embedUrl = getEmbedUrl(lesson.video_url)
+
   return (
-    <div className="min-h-screen">
+    <div className="pb-20">
       {/* Header */}
       <div className="bg-slate-800 p-4 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-2">
+        <button onClick={() => navigate(-1)} className="p-2 text-white">
           <ArrowLeft size={24} />
         </button>
-        <div>
-          <p className="text-slate-400 text-sm">{lesson.module.emoji} {lesson.module.title}</p>
-          <h1 className="font-bold">{lesson.title}</h1>
+        <div className="flex-1">
+          <h1 className="font-bold text-white">{lesson.title}</h1>
+          <p className="text-slate-400 text-sm">{lesson.description}</p>
         </div>
       </div>
-      
-      {/* Video */}
-      {lesson.video_url && (
-        <div className="aspect-video bg-black flex items-center justify-center">
-          <iframe 
-            src={lesson.video_url}
+
+      {/* Video Player */}
+      {embedUrl ? (
+        <div className="aspect-video bg-black">
+          <iframe
+            src={embedUrl}
             className="w-full h-full"
             allowFullScreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            title={lesson.title}
           />
         </div>
+      ) : (
+        <div className="aspect-video bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Play size={40} className="text-white ml-1" />
+            </div>
+            <p className="text-white/60">Video mavjud emas</p>
+          </div>
+        </div>
       )}
-      
-      {/* Content */}
+
+      {/* Lesson Info */}
       <div className="p-4">
         <div className="flex items-center gap-4 text-slate-400 text-sm mb-4">
           <span className="flex items-center gap-1">
@@ -103,52 +120,52 @@ export default function Lesson() {
             <Zap size={16} className="text-yellow-500" /> {lesson.xp_reward} XP
           </span>
         </div>
-        
-        {lesson.description && (
-          <p className="text-slate-300 mb-4">{lesson.description}</p>
-        )}
-        
+
+        {/* Content */}
         {lesson.content && (
-          <div className="prose prose-invert max-w-none mb-6">
-            <div dangerouslySetInnerHTML={{ __html: lesson.content }} />
+          <div className="bg-slate-800 rounded-xl p-4 mb-6">
+            <h3 className="font-bold text-white mb-3">📝 Dars matni</h3>
+            <p className="text-slate-300 whitespace-pre-line leading-relaxed">
+              {lesson.content}
+            </p>
           </div>
         )}
-        
+
         {/* Complete Button */}
-        <motion.button
-          onClick={completeLesson}
-          disabled={completing || lesson.is_completed}
-          className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 ${
-            lesson.is_completed 
-              ? 'bg-green-500' 
-              : 'bg-gradient-to-r from-blue-500 to-purple-600'
-          }`}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          {lesson.is_completed ? (
-            <>
+        {!lesson.is_completed ? (
+          <button
+            onClick={completeLesson}
+            disabled={completing}
+            className="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white disabled:opacity-50"
+          >
+            {completing ? 'Yuklanmoqda...' : (
+              <>
+                <CheckCircle size={20} />
+                Tugatish va {lesson.xp_reward} XP olish
+              </>
+            )}
+          </button>
+        ) : (
+          <div className="space-y-3">
+            <button
+              className="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 bg-green-500 text-white"
+              disabled
+            >
               <CheckCircle size={20} />
-              Tugatilgan
-            </>
-          ) : completing ? (
-            'Yuklanmoqda...'
-          ) : (
-            <>
-              <Play size={20} />
-              {lesson.quiz_id ? 'Tugatish va Quiz' : 'Tugatish'} (+{lesson.xp_reward} XP)
-            </>
-          )}
-        </motion.button>
+              Tugatilgan ✓
+            </button>
+
+            {lesson.has_quiz && (
+              <button
+                onClick={() => navigate(`/quiz/${lesson.quiz_id}`)}
+                className="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 bg-purple-500 text-white"
+              >
+                📝 Quizni boshlash
+              </button>
+            )}
+          </div>
+        )}
       </div>
-      
-      {/* Level Up Modal */}
-      <LevelUpModal 
-        isOpen={!!levelUp}
-        onClose={() => setLevelUp(null)}
-        newLevel={levelUp?.level}
-        badge={levelUp?.badge}
-      />
     </div>
   )
 }
