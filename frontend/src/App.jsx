@@ -1,9 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
-import AdminQuizzes from './pages/admin/Quizzes'
-import Quiz from './pages/Quiz'
-
 
 // Pages
 import Home from './pages/Home'
@@ -22,6 +19,8 @@ import AdminDashboard from './pages/admin/Dashboard'
 import AdminUsers from './pages/admin/Users'
 import AdminModules from './pages/admin/Modules'
 import AdminPayments from './pages/admin/Payments'
+import AdminQuizzes from './pages/admin/Quizzes'
+import AdminSettings from './pages/admin/Settings'
 
 // Components
 import BottomNav from './components/layout/BottomNav'
@@ -29,19 +28,19 @@ import Loader from './components/common/Loader'
 
 function PrivateRoute({ children, adminOnly = false }) {
   const { user, loading } = useAuth()
-  
+
   if (loading) return <Loader />
   if (!user) return <Navigate to="/" replace />
   if (adminOnly && !user.is_admin) return <Navigate to="/" replace />
-  
+
   return children
 }
 
 function AppContent() {
   const { loading } = useAuth()
-  
+
   if (loading) return <Loader fullScreen />
-  
+
   return (
     <div className="min-h-screen bg-slate-900 text-white pb-20">
       <Routes>
@@ -55,8 +54,6 @@ function AppContent() {
         <Route path="/premium" element={<Premium />} />
         <Route path="/news" element={<News />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/admin/quizzes" element={<AdminQuizzes />} />
-        <Route path="/quiz/:quizId" element={<Quiz />} />
 
         {/* Admin Routes */}
         <Route path="/admin" element={
@@ -74,9 +71,19 @@ function AppContent() {
             <AdminModules />
           </PrivateRoute>
         } />
+        <Route path="/admin/quizzes" element={
+          <PrivateRoute adminOnly>
+            <AdminQuizzes />
+          </PrivateRoute>
+        } />
         <Route path="/admin/payments" element={
           <PrivateRoute adminOnly>
             <AdminPayments />
+          </PrivateRoute>
+        } />
+        <Route path="/admin/settings" element={
+          <PrivateRoute adminOnly>
+            <AdminSettings />
           </PrivateRoute>
         } />
       </Routes>
