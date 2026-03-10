@@ -7,23 +7,23 @@ export default function BottomNav() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()
-  const { isDark } = useTheme()
+  const { isDark, t } = useTheme()
 
   const userTabs = [
-    { path: '/', icon: Home, label: 'Bosh' },
-    { path: '/modules', icon: BookOpen, label: 'Darslar' },
-    { path: '/leaderboard', icon: Trophy, label: 'Reyting' },
-    { path: '/news', icon: Newspaper, label: 'Yangilik' },
-    { path: '/profile', icon: User, label: 'Profil' }
+    { path: '/', icon: Home, label: t('nav.home') },
+    { path: '/modules', icon: BookOpen, label: t('nav.lessons') },
+    { path: '/leaderboard', icon: Trophy, label: t('nav.rating') },
+    { path: '/news', icon: Newspaper, label: t('nav.news') },
+    { path: '/profile', icon: User, label: t('nav.profile') }
   ]
 
   const adminTabs = [
-    { path: '/admin', icon: Home, label: 'Bosh', exact: true },
-    { path: '/admin/users', icon: Users, label: 'Users' },
-    { path: '/admin/modules', icon: BookOpen, label: 'Modullar' },
-    { path: '/admin/quizzes', icon: HelpCircle, label: 'Quiz' },
-    { path: '/admin/payments', icon: CreditCard, label: "To'lov" },
-    { path: '/admin/settings', icon: Settings, label: 'Sozlama' }
+    { path: '/admin', icon: Home, label: t('nav.home'), exact: true },
+    { path: '/admin/users', icon: Users, label: t('nav.users') },
+    { path: '/admin/modules', icon: BookOpen, label: t('nav.modules') },
+    { path: '/admin/quizzes', icon: HelpCircle, label: t('nav.quiz') },
+    { path: '/admin/payments', icon: CreditCard, label: t('nav.payment') },
+    { path: '/admin/settings', icon: Settings, label: t('nav.settings') }
   ]
 
   const isAdminPage = location.pathname.startsWith('/admin')

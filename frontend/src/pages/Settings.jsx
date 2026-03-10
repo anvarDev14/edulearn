@@ -7,7 +7,7 @@ import { useTheme } from '../context/ThemeContext'
 export default function Settings() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
-  const { theme, toggleTheme, language, setLanguage } = useTheme()
+  const { theme, toggleTheme, language, setLanguage, t } = useTheme()
   const [notifications, setNotifications] = useState(() => {
     const saved = localStorage.getItem('notifications')
     return saved !== null ? saved === 'true' : true
@@ -20,7 +20,7 @@ export default function Settings() {
   }, [notifications])
 
   const handleLogout = () => {
-    if (confirm('Chiqishni xohlaysizmi?')) {
+    if (confirm(t('settings.logoutConfirm'))) {
       logout()
       navigate('/')
     }
@@ -34,7 +34,7 @@ export default function Settings() {
 
   return (
     <div className={`p-4 pb-24 min-h-screen transition-colors`}>
-      <h1 className={`text-2xl font-bold mb-6 ${textClass}`}>Sozlamalar</h1>
+      <h1 className={`text-2xl font-bold mb-6 ${textClass}`}>{t('settings.title')}</h1>
 
       {/* User Card */}
       <div className={`rounded-xl p-4 mb-6 ${cardClass}`}>
@@ -43,16 +43,16 @@ export default function Settings() {
             {user?.is_premium ? '👑' : '👤'}
           </div>
           <div className="flex-1">
-            <h2 className={`font-bold text-lg ${textClass}`}>{user?.full_name || 'Foydalanuvchi'}</h2>
+            <h2 className={`font-bold text-lg ${textClass}`}>{user?.full_name || 'User'}</h2>
             <p className={`text-sm ${subTextClass}`}>@{user?.username || 'username'}</p>
             <div className="flex items-center gap-2 mt-1">
               {user?.is_premium ? (
                 <span className="text-xs bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <Crown size={12} /> Premium
+                  <Crown size={12} /> {t('profile.premium')}
                 </span>
               ) : (
                 <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-200 text-slate-500'}`}>
-                  Free
+                  {t('profile.free')}
                 </span>
               )}
               {user?.is_admin && (
@@ -74,8 +74,8 @@ export default function Settings() {
           <div className="flex items-center gap-3">
             <Crown size={28} className="text-white" />
             <div className="flex-1">
-              <p className="font-bold text-white">Premium ga o'ting</p>
-              <p className="text-white/80 text-sm">Barcha darslarga kirish oling</p>
+              <p className="font-bold text-white">{t('settings.goPremium')}</p>
+              <p className="text-white/80 text-sm">{t('settings.allAccess')}</p>
             </div>
             <ChevronRight size={20} className="text-white" />
           </div>
@@ -86,7 +86,7 @@ export default function Settings() {
       <div className="space-y-4">
         {/* Theme */}
         <div className={`rounded-xl p-4 ${cardClass}`}>
-          <h3 className={`font-bold mb-3 ${textClass}`}>Ko'rinish</h3>
+          <h3 className={`font-bold mb-3 ${textClass}`}>{t('settings.appearance')}</h3>
           <div
             onClick={toggleTheme}
             className="flex items-center justify-between cursor-pointer"
@@ -97,7 +97,7 @@ export default function Settings() {
               ) : (
                 <Sun size={20} className="text-yellow-500" />
               )}
-              <span className={textClass}>Tungi rejim</span>
+              <span className={textClass}>{t('settings.darkMode')}</span>
             </div>
             <div className={`w-12 h-6 rounded-full transition-colors ${
               isDark ? 'bg-blue-500' : 'bg-slate-300'
@@ -111,7 +111,7 @@ export default function Settings() {
 
         {/* Notifications */}
         <div className={`rounded-xl p-4 ${cardClass}`}>
-          <h3 className={`font-bold mb-3 ${textClass}`}>Bildirishnomalar</h3>
+          <h3 className={`font-bold mb-3 ${textClass}`}>{t('settings.notifications')}</h3>
           <div
             onClick={() => setNotifications(!notifications)}
             className="flex items-center justify-between cursor-pointer"
@@ -122,7 +122,7 @@ export default function Settings() {
               ) : (
                 <BellOff size={20} className={subTextClass} />
               )}
-              <span className={textClass}>Bildirishnomalar</span>
+              <span className={textClass}>{t('settings.notifications')}</span>
             </div>
             <div className={`w-12 h-6 rounded-full transition-colors ${
               notifications ? 'bg-green-500' : isDark ? 'bg-slate-600' : 'bg-slate-300'
@@ -136,7 +136,7 @@ export default function Settings() {
 
         {/* Language */}
         <div className={`rounded-xl p-4 ${cardClass}`}>
-          <h3 className={`font-bold mb-3 ${textClass}`}>Til</h3>
+          <h3 className={`font-bold mb-3 ${textClass}`}>{t('settings.language')}</h3>
           <div className="flex gap-2">
             {[
               { code: 'uz', label: "O'zbek", flag: '🇺🇿' },
@@ -168,7 +168,7 @@ export default function Settings() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Shield size={20} className="text-blue-500" />
-                <span className={textClass}>Admin Panel</span>
+                <span className={textClass}>{t('settings.adminPanel')}</span>
               </div>
               <ChevronRight size={20} className={subTextClass} />
             </div>
@@ -177,24 +177,24 @@ export default function Settings() {
 
         {/* Account Info */}
         <div className={`rounded-xl p-4 ${cardClass}`}>
-          <h3 className={`font-bold mb-3 ${textClass}`}>Hisob</h3>
+          <h3 className={`font-bold mb-3 ${textClass}`}>{t('settings.account')}</h3>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className={subTextClass}>Telegram ID</span>
+              <span className={subTextClass}>{t('settings.telegramId')}</span>
               <span className={textClass}>{user?.telegram_id || '-'}</span>
             </div>
             <div className="flex justify-between">
-              <span className={subTextClass}>Level</span>
+              <span className={subTextClass}>{t('profile.level')}</span>
               <span className={textClass}>{user?.level || 1}</span>
             </div>
             <div className="flex justify-between">
-              <span className={subTextClass}>Jami XP</span>
+              <span className={subTextClass}>{t('home.totalXP')}</span>
               <span className={textClass}>{user?.total_xp?.toLocaleString() || 0}</span>
             </div>
             <div className="flex justify-between">
-              <span className={subTextClass}>Ro'yxatdan o'tgan</span>
+              <span className={subTextClass}>{t('settings.registeredAt')}</span>
               <span className={textClass}>
-                {user?.created_at ? new Date(user.created_at).toLocaleDateString('uz-UZ') : '-'}
+                {user?.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
               </span>
             </div>
           </div>
@@ -206,7 +206,7 @@ export default function Settings() {
           className="w-full bg-red-500/20 text-red-500 rounded-xl p-4 flex items-center justify-center gap-2 font-medium"
         >
           <LogOut size={20} />
-          Chiqish
+          {t('settings.logout')}
         </button>
       </div>
 
