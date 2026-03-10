@@ -3,7 +3,6 @@ import { Crown, Shield } from 'lucide-react'
 import { adminAPI } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 import Loader from '../../components/common/Loader'
-import { AdminBottomNav } from './Dashboard'
 
 export default function AdminUsers() {
   const { user } = useAuth()
@@ -119,8 +118,6 @@ export default function AdminUsers() {
           </div>
         ))}
       </div>
-
-      <AdminBottomNav />
     </div>
   )
 }

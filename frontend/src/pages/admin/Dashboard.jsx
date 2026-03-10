@@ -1,52 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Users, BookOpen, CreditCard, TrendingUp, Home, HelpCircle, Settings } from 'lucide-react'
+import { Users, BookOpen, CreditCard, TrendingUp } from 'lucide-react'
 import { adminAPI } from '../../api'
 import Loader from '../../components/common/Loader'
-
-// Admin Bottom Navigation
-function AdminBottomNav() {
-  const navigate = useNavigate()
-  const location = useLocation()
-
-  const tabs = [
-    { path: '/admin', icon: Home, label: 'Bosh' },
-    { path: '/admin/users', icon: Users, label: 'Users' },
-    { path: '/admin/modules', icon: BookOpen, label: 'Modullar' },
-    { path: '/admin/quizzes', icon: HelpCircle, label: 'Quiz' },
-    { path: '/admin/payments', icon: CreditCard, label: "To'lov" },
-    { path: '/admin/settings', icon: Settings, label: 'Sozlama' },
-  ]
-
-  const isActive = (path) => {
-    if (path === '/admin') return location.pathname === '/admin'
-    return location.pathname.startsWith(path)
-  }
-
-  return (
-    <div className="fixed bottom-0 left-0 right-0 bg-slate-800/95 backdrop-blur border-t border-slate-700 z-50">
-      <div className="flex justify-around items-center h-16 max-w-lg mx-auto">
-        {tabs.map(tab => {
-          const Icon = tab.icon
-          const active = isActive(tab.path)
-          return (
-            <button
-              key={tab.path}
-              onClick={() => navigate(tab.path)}
-              className={`flex flex-col items-center justify-center flex-1 py-2 transition-all ${
-                active ? 'text-blue-500' : 'text-slate-400'
-              }`}
-            >
-              <Icon size={18} />
-              <span className="text-xs mt-1">{tab.label}</span>
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
@@ -143,11 +100,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Admin Bottom Nav */}
-      <AdminBottomNav />
     </div>
   )
 }
-
-// Export AdminBottomNav for other admin pages
-export { AdminBottomNav }

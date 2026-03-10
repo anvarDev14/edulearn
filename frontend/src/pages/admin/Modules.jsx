@@ -3,7 +3,6 @@ import { Plus, Trash2, Crown, ChevronDown, ChevronUp, Video } from 'lucide-react
 import { adminAPI } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 import Loader from '../../components/common/Loader'
-import { AdminBottomNav } from './Dashboard'
 
 export default function AdminModules() {
   const { user } = useAuth()
@@ -223,7 +222,6 @@ export default function AdminModules() {
         </div>
       )}
 
-      <AdminBottomNav />
     </div>
   )
 }

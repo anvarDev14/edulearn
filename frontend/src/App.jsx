@@ -20,6 +20,8 @@ import AdminUsers from './pages/admin/Users'
 import AdminModules from './pages/admin/Modules'
 import AdminPayments from './pages/admin/Payments'
 import AdminQuizzes from './pages/admin/Quizzes'
+import AdminQuizCreate from './pages/admin/QuizCreate'
+import AdminQuizAICreate from './pages/admin/QuizAICreate'
 import AdminSettings from './pages/admin/Settings'
 
 // Components
@@ -74,6 +76,16 @@ function AppContent() {
         <Route path="/admin/quizzes" element={
           <PrivateRoute adminOnly>
             <AdminQuizzes />
+          </PrivateRoute>
+        } />
+        <Route path="/admin/quizzes/create" element={
+          <PrivateRoute adminOnly>
+            <AdminQuizCreate />
+          </PrivateRoute>
+        } />
+        <Route path="/admin/quizzes/ai-create" element={
+          <PrivateRoute adminOnly>
+            <AdminQuizAICreate />
           </PrivateRoute>
         } />
         <Route path="/admin/payments" element={

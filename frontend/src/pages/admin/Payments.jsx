@@ -3,7 +3,6 @@ import { Check, X, ExternalLink } from 'lucide-react'
 import { adminAPI } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 import Loader from '../../components/common/Loader'
-import { AdminBottomNav } from './Dashboard'
 
 export default function AdminPayments() {
   const { user } = useAuth()
@@ -107,8 +106,6 @@ export default function AdminPayments() {
           ))}
         </div>
       )}
-
-      <AdminBottomNav />
     </div>
   )
 }
