@@ -1,11 +1,13 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Home, BookOpen, Trophy, User, Newspaper, Users, CreditCard, HelpCircle, Settings, Shield } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 
 export default function BottomNav() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()
+  const { isDark } = useTheme()
 
   const userTabs = [
     { path: '/', icon: Home, label: 'Bosh' },
@@ -38,7 +40,9 @@ export default function BottomNav() {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-slate-800/95 backdrop-blur-lg border-t border-slate-700 z-50">
+    <div className={`fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t z-50 transition-colors ${
+      isDark ? 'bg-slate-800/95 border-slate-700' : 'bg-white/95 border-slate-200'
+    }`}>
       <div className={`flex justify-around items-center h-16 max-w-lg mx-auto ${isAdminPage ? 'px-1' : 'px-2'}`}>
         {tabs.map(tab => {
           const Icon = tab.icon
@@ -51,7 +55,7 @@ export default function BottomNav() {
               className={`flex flex-col items-center justify-center flex-1 py-2 transition-all relative ${
                 active
                   ? 'text-blue-500'
-                  : 'text-slate-400 hover:text-slate-200'
+                  : isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               {active && (

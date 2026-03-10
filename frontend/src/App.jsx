@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import { ThemeProvider } from './context/ThemeContext'
+import { ThemeProvider, useTheme } from './context/ThemeContext'
 
 // Pages
 import Home from './pages/Home'
@@ -40,11 +40,14 @@ function PrivateRoute({ children, adminOnly = false }) {
 
 function AppContent() {
   const { loading } = useAuth()
+  const { isDark } = useTheme()
 
   if (loading) return <Loader fullScreen />
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white pb-20">
+    <div className={`min-h-screen pb-20 transition-colors duration-300 ${
+      isDark ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-900'
+    }`}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/modules" element={<Modules />} />
