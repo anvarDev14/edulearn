@@ -1,6 +1,8 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+// Use explicit API URL if provided, otherwise fall back to same-origin `/api`.
+// This ensures the frontend and bot talk to the same backend instance/database.
+const API_URL = import.meta.env.VITE_API_URL || '/api'
 
 const api = axios.create({
   baseURL: API_URL,
