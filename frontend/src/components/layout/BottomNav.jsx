@@ -1,12 +1,13 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { Home, BookOpen, Search, Target, User } from 'lucide-react'
 
 const NAV = [
-  { to: '/', icon: '🏠', label: 'Bosh' },
-  { to: '/modules', icon: '📚', label: 'Kurslar' },
-  { to: '/search', icon: '🔍', label: 'Qidiruv' },
-  { to: '/challenges', icon: '🏅', label: 'Topshiriq' },
-  { to: '/profile', icon: '👤', label: 'Profil' },
+  { to: '/', icon: Home, label: 'Bosh' },
+  { to: '/modules', icon: BookOpen, label: 'Kurslar' },
+  { to: '/search', icon: Search, label: 'Qidiruv' },
+  { to: '/challenges', icon: Target, label: 'Topshiriq' },
+  { to: '/profile', icon: User, label: 'Profil' },
 ]
 
 export default function BottomNav() {
@@ -18,17 +19,39 @@ export default function BottomNav() {
   if (hideOn.some(p => location.pathname.startsWith(p))) return null
 
   return (
-    <nav className="bottom-nav">
-      {NAV.map(item => (
+    <nav style={{
+      position: 'fixed', bottom: 0, left: 0, right: 0,
+      height: 'var(--nav-h)',
+      background: 'rgba(253,250,246,0.96)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      borderTop: '1px solid var(--border)',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+      paddingBottom: 'env(safe-area-inset-bottom)',
+      zIndex: 100,
+    }}>
+      {NAV.map(({ to, icon: Icon, label }) => (
         <NavLink
-          key={item.to}
-          to={item.to}
-          end={item.to === '/'}
-          className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+          key={to}
+          to={to}
+          end={to === '/'}
+          style={({ isActive }) => ({
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            gap: 3, padding: '6px 16px', borderRadius: 12,
+            cursor: 'pointer', minWidth: 52, textDecoration: 'none',
+            transition: 'all 0.18s',
+            background: isActive ? 'var(--primary-dim)' : 'transparent',
+            color: isActive ? 'var(--primary)' : 'var(--text3)',
+          })}
         >
-          <span className="nav-icon">{item.icon}</span>
-          <span className="nav-label">{item.label}</span>
-          <span className="nav-dot" />
+          {({ isActive }) => (
+            <>
+              <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
+              <span style={{ fontSize: 10, fontWeight: isActive ? 700 : 500, letterSpacing: '0.2px' }}>
+                {label}
+              </span>
+            </>
+          )}
         </NavLink>
       ))}
     </nav>

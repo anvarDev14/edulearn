@@ -27,9 +27,7 @@ export default function Modules() {
   }
 
   const getModuleProgress = (module) => {
-    if (!module.lessons || module.lessons.length === 0) return 0
-    const completed = module.lessons.filter(l => l.is_completed).length
-    return Math.round((completed / module.lessons.length) * 100)
+    return module.progress || 0
   }
 
   const isModuleLocked = (module) => {
@@ -91,10 +89,10 @@ export default function Modules() {
                   </div>
 
                   <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 6 }}>
-                    {(module.lessons?.length || 0)} ta dars
+                    {(module.total_lessons || 0)} ta dars
                   </p>
 
-                  {!locked && module.lessons?.length > 0 && (
+                  {!locked && module.total_lessons > 0 && (
                     <div>
                       <div
                         style={{

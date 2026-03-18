@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react'
-import { Crown, Shield } from 'lucide-react'
+import { Crown, Shield, ChevronLeft } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { adminAPI } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 import Loader from '../../components/common/Loader'
 
 export default function AdminUsers() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadUsers()
-  }, [])
+  useEffect(() => { loadUsers() }, [])
 
   const loadUsers = async () => {
     try {
@@ -27,91 +27,78 @@ export default function AdminUsers() {
   const grantPremium = async (userId) => {
     const days = prompt('Necha kun?', '30')
     if (!days) return
-
     try {
       await adminAPI.grantPremium(userId, parseInt(days))
       loadUsers()
-      alert('Premium berildi!')
-    } catch (error) {
-      alert('Xatolik')
-    }
+    } catch { alert('Xatolik') }
   }
 
   const revokePremium = async (userId) => {
     if (!confirm('Premiumni bekor qilasizmi?')) return
-
     try {
       await adminAPI.revokePremium(userId)
       loadUsers()
-      alert('Premium olib tashlandi!')
-    } catch (error) {
-      alert('Xatolik')
-    }
+    } catch { alert('Xatolik') }
   }
 
   const toggleAdmin = async (userId) => {
     try {
       await adminAPI.toggleAdmin(userId)
       loadUsers()
-    } catch (error) {
-      alert('Xatolik')
-    }
+    } catch { alert('Xatolik') }
   }
 
-  if (!user?.is_admin) {
-    return (
-      <div className="p-4 text-center">
-        <p className="text-red-500 text-xl">🚫 Ruxsat yo'q</p>
-      </div>
-    )
-  }
+  if (!user?.is_admin) return (
+    <div className="page" style={{ textAlign: 'center' }}>
+      <p style={{ color: 'var(--red)', fontSize: 18 }}>🚫 Ruxsat yo'q</p>
+    </div>
+  )
 
   if (loading) return <Loader />
 
   return (
-    <div className="min-h-screen p-4 pb-24">
-      <h1 className="text-2xl font-bold mb-6">👥 Foydalanuvchilar</h1>
+    <div className="page">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
+        <button onClick={() => navigate('/admin')} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+          <ChevronLeft size={18} style={{ color: 'var(--text)' }} />
+        </button>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>👥 Foydalanuvchilar</h1>
+          <p style={{ fontSize: 13, color: 'var(--text3)' }}>{users.length} ta foydalanuvchi</p>
+        </div>
+      </div>
 
-      <div className="space-y-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {users.map(u => (
-          <div key={u.id} className="bg-slate-800 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">{u.full_name}</span>
-                  {u.is_premium && <Crown size={14} className="text-amber-500" />}
-                  {u.is_admin && <Shield size={14} className="text-blue-500" />}
+          <div key={u.id} className="card card-sm">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--primary-dim)', border: '2px solid var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
+                  {u.full_name?.[0] || '?'}
                 </div>
-                <p className="text-slate-400 text-sm">
-                  @{u.username || 'no_username'} • Level {u.level}
-                </p>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>{u.full_name}</span>
+                    {u.is_premium && <Crown size={13} style={{ color: 'var(--gold)' }} />}
+                    {u.is_admin && <Shield size={13} style={{ color: 'var(--primary)' }} />}
+                  </div>
+                  <p style={{ fontSize: 12, color: 'var(--text3)' }}>@{u.username || 'no_username'} · Level {u.level}</p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="font-bold text-blue-400">{u.total_xp} XP</p>
-              </div>
+              <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--primary)' }}>{u.total_xp?.toLocaleString()} XP</span>
             </div>
 
-            <div className="flex gap-2 mt-3">
+            <div style={{ display: 'flex', gap: 8 }}>
               {u.is_premium ? (
-                <button
-                  onClick={() => revokePremium(u.id)}
-                  className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm"
-                >
+                <button onClick={() => revokePremium(u.id)} className="btn btn-danger btn-sm" style={{ flex: 1 }}>
                   Premium o'chirish
                 </button>
               ) : (
-                <button
-                  onClick={() => grantPremium(u.id)}
-                  className="flex-1 py-2 bg-amber-500/20 text-amber-400 rounded-lg text-sm"
-                >
-                  Premium berish
+                <button onClick={() => grantPremium(u.id)} className="btn btn-gold btn-sm" style={{ flex: 1 }}>
+                  <Crown size={13} /> Premium berish
                 </button>
               )}
-
-              <button
-                onClick={() => toggleAdmin(u.id)}
-                className="px-4 py-2 bg-slate-700 rounded-lg text-sm"
-              >
+              <button onClick={() => toggleAdmin(u.id)} className="btn btn-secondary btn-sm">
                 {u.is_admin ? 'Admin o\'chirish' : 'Admin qilish'}
               </button>
             </div>

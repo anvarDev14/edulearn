@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Lock, Play, CheckCircle, Crown } from 'lucide-react'
+import { Lock, Play, CheckCircle, Crown, ChevronRight } from 'lucide-react'
 import { lessonsAPI } from '../api'
 import Loader from '../components/common/Loader'
 
@@ -10,72 +9,89 @@ export default function ModuleLessons() {
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
-  
+
   useEffect(() => {
     loadLessons()
   }, [moduleId])
-  
+
   const loadLessons = async () => {
     try {
       const res = await lessonsAPI.getModuleLessons(moduleId)
       setData(res.data)
     } catch (error) {
-      console.error('Error:', error)
-      if (error.response?.status === 403) {
-        navigate('/premium')
-      }
+      if (error.response?.status === 403) navigate('/premium')
     } finally {
       setLoading(false)
     }
   }
-  
+
   if (loading) return <Loader />
   if (!data) return null
-  
+
   return (
-    <div className="min-h-screen p-4">
-      <div className="flex items-center gap-3 mb-6">
-        <span className="text-3xl">{data.module.emoji}</span>
-        <h1 className="text-2xl font-bold">{data.module.title}</h1>
+    <div className="page">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+        <span style={{ fontSize: 32 }}>{data.module.emoji}</span>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.3px', color: 'var(--text)' }}>{data.module.title}</h1>
+          <p style={{ fontSize: 13, color: 'var(--text3)', marginTop: 1 }}>{data.lessons.length} ta dars</p>
+        </div>
       </div>
-      
-      <div className="space-y-3">
-        {data.lessons.map((lesson, i) => (
-          <motion.div
-            key={lesson.id}
-            onClick={() => !lesson.is_locked && navigate(`/lesson/${lesson.id}`)}
-            className={`bg-slate-800 rounded-xl p-4 flex items-center gap-4 cursor-pointer transition ${
-              lesson.is_locked ? 'opacity-60' : 'hover:bg-slate-700'
-            }`}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.05 * i }}
-          >
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              lesson.is_completed ? 'bg-green-500' :
-              lesson.is_locked ? 'bg-slate-700' : 'bg-blue-500'
-            }`}>
-              {lesson.is_completed ? <CheckCircle size={20} /> :
-               lesson.is_locked ? <Lock size={18} /> : <Play size={18} />}
-            </div>
-            
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold">{lesson.title}</h3>
-                {lesson.is_premium && <Crown size={14} className="text-amber-500" />}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {data.lessons.map((lesson, i) => {
+          const isLocked = lesson.is_locked
+          const isDone = lesson.is_completed
+          return (
+            <button
+              key={lesson.id}
+              type="button"
+              onClick={() => !isLocked && navigate(`/lesson/${lesson.id}`)}
+              className="card card-sm"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                opacity: isLocked ? 0.55 : 1,
+                cursor: isLocked ? 'not-allowed' : 'pointer',
+                textAlign: 'left',
+                width: '100%',
+                transition: 'all 0.18s',
+                animation: `fadeIn 0.3s ease ${i * 0.04}s both`,
+              }}
+            >
+              <div style={{
+                width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: isDone ? 'var(--green-dim)' : isLocked ? 'var(--bg2)' : 'var(--primary-dim)',
+              }}>
+                {isDone
+                  ? <CheckCircle size={18} style={{ color: 'var(--green)' }} />
+                  : isLocked
+                    ? <Lock size={16} style={{ color: 'var(--text3)' }} />
+                    : <Play size={17} style={{ color: 'var(--primary)' }} />
+                }
               </div>
-              <p className="text-slate-400 text-sm">
-                {lesson.duration_min} daqiqa • {lesson.xp_reward} XP
-              </p>
-            </div>
-            
-            {lesson.has_quiz && (
-              <div className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">
-                Quiz
+
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {lesson.title}
+                  </p>
+                  {lesson.is_premium && <Crown size={12} style={{ color: 'var(--gold)', flexShrink: 0 }} />}
+                </div>
+                <p style={{ fontSize: 12, color: 'var(--text3)' }}>
+                  {lesson.duration_min} daqiqa · {lesson.xp_reward} XP
+                </p>
               </div>
-            )}
-          </motion.div>
-        ))}
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                {lesson.has_quiz && (
+                  <span className="badge badge-cyan" style={{ fontSize: 10 }}>Quiz</span>
+                )}
+                {!isLocked && <ChevronRight size={15} style={{ color: 'var(--text3)' }} />}
+              </div>
+            </button>
+          )
+        })}
       </div>
     </div>
   )

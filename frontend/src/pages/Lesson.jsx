@@ -28,24 +28,15 @@ export default function Lesson() {
 
   const getEmbedUrl = (url) => {
     if (!url) return null
-
-    // youtube.com/watch?v=VIDEO_ID
     if (url.includes('youtube.com/watch')) {
       const videoId = url.split('v=')[1]?.split('&')[0]
       return `https://www.youtube.com/embed/${videoId}`
     }
-
-    // youtu.be/VIDEO_ID
     if (url.includes('youtu.be/')) {
       const videoId = url.split('youtu.be/')[1]?.split('?')[0]
       return `https://www.youtube.com/embed/${videoId}`
     }
-
-    // Agar allaqachon embed bo'lsa
-    if (url.includes('youtube.com/embed')) {
-      return url
-    }
-
+    if (url.includes('youtube.com/embed')) return url
     return url
   }
 
@@ -67,8 +58,9 @@ export default function Lesson() {
 
   if (!lesson) {
     return (
-      <div className="p-4 text-center text-red-500">
-        Dars topilmadi
+      <div className="page" style={{ textAlign: 'center', paddingTop: 60 }}>
+        <p style={{ fontSize: 48, marginBottom: 12 }}>📭</p>
+        <p style={{ color: 'var(--text3)' }}>Dars topilmadi</p>
       </div>
     )
   }
@@ -76,89 +68,94 @@ export default function Lesson() {
   const embedUrl = getEmbedUrl(lesson.video_url)
 
   return (
-    <div className="pb-20">
+    <div style={{ paddingBottom: 32 }}>
       {/* Header */}
-      <div className="bg-slate-800 p-4 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-2 text-white">
-          <ArrowLeft size={24} />
+      <div style={{
+        background: 'var(--surface)', borderBottom: '1px solid var(--border)',
+        padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12
+      }}>
+        <button
+          onClick={() => navigate(-1)}
+          style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+        >
+          <ArrowLeft size={18} style={{ color: 'var(--text)' }} />
         </button>
-        <div className="flex-1">
-          <h1 className="font-bold text-white">{lesson.title}</h1>
-          <p className="text-slate-400 text-sm">{lesson.description}</p>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h1 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {lesson.title}
+          </h1>
+          {lesson.description && (
+            <p style={{ fontSize: 12, color: 'var(--text3)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {lesson.description}
+            </p>
+          )}
         </div>
       </div>
 
-      {/* Video Player */}
+      {/* Video */}
       {embedUrl ? (
-        <div className="aspect-video bg-black">
+        <div style={{ position: 'relative', paddingBottom: '56.25%', background: '#000' }}>
           <iframe
             src={embedUrl}
-            className="w-full h-full"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
             allowFullScreen
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             title={lesson.title}
           />
         </div>
       ) : (
-        <div className="aspect-video bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Play size={40} className="text-white ml-1" />
+        <div style={{
+          position: 'relative', paddingBottom: '56.25%',
+          background: 'linear-gradient(135deg, var(--bg2), var(--surface3))'
+        }}>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--primary-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Play size={30} style={{ color: 'var(--primary)', marginLeft: 3 }} />
             </div>
-            <p className="text-white/60">Video mavjud emas</p>
+            <p style={{ color: 'var(--text3)', fontSize: 13 }}>Video mavjud emas</p>
           </div>
         </div>
       )}
 
-      {/* Lesson Info */}
-      <div className="p-4">
-        <div className="flex items-center gap-4 text-slate-400 text-sm mb-4">
-          <span className="flex items-center gap-1">
-            <Clock size={16} /> {lesson.duration_min} daqiqa
+      {/* Content */}
+      <div style={{ padding: '16px 16px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: 'var(--text3)' }}>
+            <Clock size={14} /> {lesson.duration_min} daqiqa
           </span>
-          <span className="flex items-center gap-1">
-            <Zap size={16} className="text-yellow-500" /> {lesson.xp_reward} XP
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: 'var(--gold)' }}>
+            <Zap size={14} /> {lesson.xp_reward} XP
           </span>
         </div>
 
-        {/* Content */}
         {lesson.content && (
-          <div className="bg-slate-800 rounded-xl p-4 mb-6">
-            <h3 className="font-bold text-white mb-3">📝 Dars matni</h3>
-            <p className="text-slate-300 whitespace-pre-line leading-relaxed">
+          <div className="card" style={{ marginBottom: 16 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: 'var(--text)' }}>📝 Dars matni</p>
+            <p style={{ fontSize: 14, color: 'var(--text2)', whiteSpace: 'pre-line', lineHeight: 1.7 }}>
               {lesson.content}
             </p>
           </div>
         )}
 
-        {/* Complete Button */}
         {!lesson.is_completed ? (
           <button
             onClick={completeLesson}
             disabled={completing}
-            className="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white disabled:opacity-50"
+            className="btn btn-primary btn-full btn-lg"
           >
             {completing ? 'Yuklanmoqda...' : (
-              <>
-                <CheckCircle size={20} />
-                Tugatish va {lesson.xp_reward} XP olish
-              </>
+              <><CheckCircle size={18} /> Tugatish · +{lesson.xp_reward} XP</>
             )}
           </button>
         ) : (
-          <div className="space-y-3">
-            <button
-              className="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 bg-green-500 text-white"
-              disabled
-            >
-              <CheckCircle size={20} />
-              Tugatilgan ✓
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <button className="btn btn-full btn-lg" disabled style={{ background: 'var(--green-dim)', color: 'var(--green)', cursor: 'default' }}>
+              <CheckCircle size={18} /> Tugatilgan ✓
             </button>
-
             {lesson.has_quiz && (
               <button
                 onClick={() => navigate(`/quiz/${lesson.quiz_id}`)}
-                className="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 bg-purple-500 text-white"
+                className="btn btn-full btn-lg btn-gold"
               >
                 📝 Quizni boshlash
               </button>

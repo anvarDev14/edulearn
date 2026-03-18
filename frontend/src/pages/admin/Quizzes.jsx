@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Trash2, HelpCircle, ChevronDown, ChevronUp, Sparkles, Video, FileText, Loader2 } from 'lucide-react'
+import { Plus, Trash2, HelpCircle, ChevronDown, ChevronUp, Sparkles, FileText, ChevronLeft } from 'lucide-react'
 import { adminAPI } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 import Loader from '../../components/common/Loader'
@@ -8,27 +8,18 @@ import Loader from '../../components/common/Loader'
 export default function AdminQuizzes() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const [modules, setModules] = useState([])
   const [quizzes, setQuizzes] = useState([])
   const [loading, setLoading] = useState(true)
   const [expandedQuiz, setExpandedQuiz] = useState(null)
 
-  useEffect(() => {
-    loadData()
-  }, [])
+  useEffect(() => { loadData() }, [])
 
   const loadData = async () => {
     try {
-      const res = await adminAPI.getModules()
-      setModules(res.data)
-      try {
-        const quizRes = await adminAPI.getQuizzes()
-        setQuizzes(quizRes.data || [])
-      } catch (e) {
-        setQuizzes([])
-      }
-    } catch (error) {
-      console.error(error)
+      const res = await adminAPI.getQuizzes()
+      setQuizzes(res.data || [])
+    } catch {
+      setQuizzes([])
     } finally {
       setLoading(false)
     }
@@ -39,101 +30,106 @@ export default function AdminQuizzes() {
     try {
       await adminAPI.deleteQuiz(id)
       loadData()
-    } catch (error) {
-      alert('Xatolik')
-    }
+    } catch { alert('Xatolik') }
   }
 
-  if (!user?.is_admin) {
-    return (
-      <div className="p-4 text-center">
-        <p className="text-red-500 text-xl">Ruxsat yo'q</p>
-      </div>
-    )
-  }
+  if (!user?.is_admin) return (
+    <div className="page" style={{ textAlign: 'center' }}>
+      <p style={{ color: 'var(--red)', fontSize: 18 }}>Ruxsat yo'q</p>
+    </div>
+  )
 
   if (loading) return <Loader />
 
   return (
-    <div className="p-4 pb-24">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">Quizlar</h1>
+    <div className="page">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
+        <button onClick={() => navigate('/admin')} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+          <ChevronLeft size={18} style={{ color: 'var(--text)' }} />
+        </button>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>Quizlar</h1>
+          <p style={{ fontSize: 13, color: 'var(--text3)' }}>{quizzes.length} ta quiz</p>
+        </div>
       </div>
 
-      {/* Quiz yaratish usullari */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      {/* Create buttons */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
         <button
           onClick={() => navigate('/admin/quizzes/create')}
-          className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-4 text-left hover:from-blue-500 hover:to-blue-600 transition-all"
+          className="card"
+          style={{ textAlign: 'left', cursor: 'pointer', background: 'var(--primary-dim)', borderColor: 'rgba(123,79,58,0.2)' }}
         >
-          <FileText size={28} className="text-blue-200 mb-2" />
-          <p className="font-bold text-white">Qo'lda yaratish</p>
-          <p className="text-blue-200 text-xs mt-1">Savollarni o'zingiz kiriting</p>
+          <FileText size={24} style={{ color: 'var(--primary)', marginBottom: 8 }} />
+          <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 3 }}>Qo'lda yaratish</p>
+          <p style={{ fontSize: 12, color: 'var(--text3)' }}>Savollarni o'zingiz kiriting</p>
         </button>
-
         <button
           onClick={() => navigate('/admin/quizzes/ai-create')}
-          className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-4 text-left hover:from-purple-500 hover:to-indigo-600 transition-all"
+          className="card"
+          style={{ textAlign: 'left', cursor: 'pointer', background: 'var(--accent-dim)', borderColor: 'rgba(196,149,106,0.2)' }}
         >
-          <Sparkles size={28} className="text-purple-200 mb-2" />
-          <p className="font-bold text-white">AI bilan yaratish</p>
-          <p className="text-purple-200 text-xs mt-1">Video yuklang, AI quiz yaratadi</p>
+          <Sparkles size={24} style={{ color: 'var(--accent)', marginBottom: 8 }} />
+          <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 3 }}>AI bilan yaratish</p>
+          <p style={{ fontSize: 12, color: 'var(--text3)' }}>Video yuklang, AI quiz yaratadi</p>
         </button>
       </div>
 
-      {/* Mavjud quizlar */}
-      <h2 className="text-lg font-bold text-white mb-4">Mavjud quizlar</h2>
+      <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 10 }}>
+        Mavjud quizlar
+      </p>
 
       {quizzes.length > 0 ? (
-        <div className="space-y-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {quizzes.map(quiz => (
-            <div key={quiz.id} className="bg-slate-800 rounded-xl overflow-hidden">
+            <div key={quiz.id} className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div
-                className="p-4 flex items-center gap-3 cursor-pointer"
+                style={{ padding: '13px 15px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
                 onClick={() => setExpandedQuiz(expandedQuiz === quiz.id ? null : quiz.id)}
               >
-                <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
-                  <HelpCircle className="text-purple-400" size={20} />
+                <div style={{ width: 36, height: 36, background: 'var(--primary-dim)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <HelpCircle size={17} style={{ color: 'var(--primary)' }} />
                 </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-white">{quiz.title}</p>
-                  <p className="text-slate-400 text-sm">
-                    {quiz.questions?.length || 0} ta savol • {quiz.time_limit} soniya
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>{quiz.title}</p>
+                  <p style={{ fontSize: 12, color: 'var(--text3)' }}>
+                    {quiz.questions?.length || 0} ta savol · {quiz.time_limit}s
                   </p>
                 </div>
                 <button
-                  onClick={(e) => { e.stopPropagation(); navigate(`/admin/quizzes/${quiz.id}/add-question`); }}
-                  className="p-2 bg-green-500/20 rounded-lg hover:bg-green-500/30 transition"
+                  onClick={e => { e.stopPropagation(); navigate(`/admin/quizzes/${quiz.id}/add-question`) }}
+                  className="btn btn-secondary btn-sm"
+                  style={{ padding: '5px 8px' }}
                 >
-                  <Plus size={16} className="text-green-400" />
+                  <Plus size={13} />
                 </button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); deleteQuiz(quiz.id); }}
-                  className="p-2 hover:bg-red-500/20 rounded-lg transition"
+                  onClick={e => { e.stopPropagation(); deleteQuiz(quiz.id) }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px 6px', color: 'var(--red)' }}
                 >
-                  <Trash2 size={16} className="text-red-400" />
+                  <Trash2 size={14} />
                 </button>
-                {expandedQuiz === quiz.id ?
-                  <ChevronUp size={18} className="text-slate-400" /> :
-                  <ChevronDown size={18} className="text-slate-400" />
+                {expandedQuiz === quiz.id
+                  ? <ChevronUp size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} />
+                  : <ChevronDown size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} />
                 }
               </div>
 
               {expandedQuiz === quiz.id && quiz.questions?.length > 0 && (
-                <div className="border-t border-slate-700 p-4 space-y-2">
+                <div style={{ borderTop: '1px solid var(--border)', background: 'var(--bg2)', padding: '10px 12px' }}>
                   {quiz.questions.map((q, idx) => (
-                    <div key={q.id} className="bg-slate-700/50 rounded-lg p-3">
-                      <p className="text-white text-sm">
-                        <span className="text-purple-400 font-bold mr-2">{idx + 1}.</span>
+                    <div key={q.id} style={{ background: 'var(--surface)', borderRadius: 8, padding: '10px 12px', marginBottom: 6, border: '1px solid var(--border)' }}>
+                      <p style={{ fontSize: 13, color: 'var(--text)', marginBottom: 8 }}>
+                        <span style={{ color: 'var(--primary)', fontWeight: 700, marginRight: 6 }}>{idx + 1}.</span>
                         {q.question}
                       </p>
-                      <div className="mt-2 grid grid-cols-2 gap-1">
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
                         {q.options?.map((opt, optIdx) => (
-                          <p key={optIdx} className={`text-xs px-2 py-1 rounded ${
-                            q.correct_index === optIdx
-                              ? 'bg-green-500/20 text-green-400'
-                              : 'text-slate-400'
-                          }`}>
+                          <p key={optIdx} style={{
+                            fontSize: 11, padding: '4px 8px', borderRadius: 6,
+                            background: q.correct_index === optIdx ? 'var(--green-dim)' : 'var(--bg2)',
+                            color: q.correct_index === optIdx ? 'var(--green)' : 'var(--text3)',
+                          }}>
                             {String.fromCharCode(65 + optIdx)}) {opt}
                           </p>
                         ))}
@@ -146,10 +142,10 @@ export default function AdminQuizzes() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 bg-slate-800/50 rounded-2xl">
-          <HelpCircle size={48} className="mx-auto text-slate-600 mb-3" />
-          <p className="text-slate-400">Quizlar yo'q</p>
-          <p className="text-slate-500 text-sm mt-1">Yuqoridagi tugmalardan foydalaning</p>
+        <div className="empty">
+          <span className="empty-icon">❓</span>
+          <p className="empty-title">Quizlar yo'q</p>
+          <p className="empty-desc">Yuqoridagi tugmalardan foydalaning</p>
         </div>
       )}
     </div>

@@ -1,14 +1,11 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Crown, Check, Upload, Copy, ExternalLink, AlertCircle } from 'lucide-react'
+import { Crown, Check, Upload, Copy, ExternalLink, AlertCircle, ChevronRight } from 'lucide-react'
 import { paymentAPI } from '../api'
 import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
 import Loader from '../components/common/Loader'
 
 export default function Premium() {
   const { user } = useAuth()
-  const { t, isDark } = useTheme()
   const [plans, setPlans] = useState([])
   const [paymentInfo, setPaymentInfo] = useState(null)
   const [selectedPlan, setSelectedPlan] = useState('monthly')
@@ -19,14 +16,7 @@ export default function Premium() {
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState(null)
 
-  const cardClass = isDark ? 'bg-slate-800' : 'bg-white shadow-sm'
-  const textClass = isDark ? 'text-white' : 'text-slate-800'
-  const subTextClass = isDark ? 'text-slate-400' : 'text-slate-500'
-  const inputClass = isDark ? 'bg-slate-700' : 'bg-slate-100'
-
-  useEffect(() => {
-    loadData()
-  }, [])
+  useEffect(() => { loadData() }, [])
 
   const loadData = async () => {
     try {
@@ -38,9 +28,8 @@ export default function Premium() {
       setPlans(plansRes.data.plans || [])
       setPaymentInfo(plansRes.data.payment_info || null)
       setStatus(statusRes.data)
-    } catch (error) {
-      console.error('Error:', error)
-      setError(t('errors.network'))
+    } catch (err) {
+      setError("Ma'lumot yuklanmadi")
     } finally {
       setLoading(false)
     }
@@ -55,32 +44,24 @@ export default function Premium() {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        alert('Max 10MB')
-        return
-      }
-      if (!file.type.startsWith('image/')) {
-        alert('Images only')
-        return
-      }
-      setScreenshot(file)
-    }
+    if (!file) return
+    if (file.size > 10 * 1024 * 1024) { alert('Max 10MB'); return }
+    if (!file.type.startsWith('image/')) { alert('Faqat rasm'); return }
+    setScreenshot(file)
   }
 
   const submitPayment = async () => {
     if (!screenshot || !paymentInfo || submitting) return
     setSubmitting(true)
-
     try {
       const uploadRes = await paymentAPI.uploadScreenshot(screenshot)
       if (!uploadRes.data?.url) throw new Error('Upload failed')
       await paymentAPI.createRequest(selectedPlan, uploadRes.data.url)
-      alert(t('premium.pending'))
+      alert("To'lov yuborildi! Tez orada tekshiriladi.")
       setScreenshot(null)
       loadData()
-    } catch (error) {
-      alert(error.response?.data?.detail || t('errors.server'))
+    } catch (err) {
+      alert(err.response?.data?.detail || "Xatolik yuz berdi")
     } finally {
       setSubmitting(false)
     }
@@ -90,14 +71,12 @@ export default function Premium() {
 
   if (error) {
     return (
-      <div className="min-h-screen p-4 pb-24">
-        <div className="bg-red-500/20 border border-red-500/30 rounded-2xl p-6 text-center">
-          <AlertCircle size={48} className="mx-auto mb-4 text-red-400" />
-          <h1 className="text-xl font-bold mb-2 text-red-400">{t('error')}</h1>
-          <p className={subTextClass + " mb-4"}>{error}</p>
-          <button onClick={loadData} className={`${cardClass} px-6 py-2 rounded-xl ${textClass}`}>
-            {t('errors.tryAgain')}
-          </button>
+      <div className="page">
+        <div className="card" style={{ textAlign: 'center', padding: 32 }}>
+          <AlertCircle size={40} style={{ color: 'var(--red)', margin: '0 auto 12px' }} />
+          <p style={{ color: 'var(--red)', fontWeight: 600, marginBottom: 8 }}>Xatolik</p>
+          <p style={{ color: 'var(--text3)', marginBottom: 16, fontSize: 13 }}>{error}</p>
+          <button onClick={loadData} className="btn btn-secondary">Qayta urinish</button>
         </div>
       </div>
     )
@@ -105,19 +84,19 @@ export default function Premium() {
 
   if (user?.is_premium) {
     return (
-      <div className="min-h-screen p-4 pb-24">
-        <div className="bg-gradient-to-b from-amber-500 to-orange-600 rounded-2xl p-6 text-center text-white">
-          <Crown size={48} className="mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">{t('premium.active')}</h1>
-          <p className="opacity-90">
-            {status?.days_remaining} {t('premium.daysLeft')}
-          </p>
+      <div className="page">
+        <div className="card card-lg" style={{
+          background: 'linear-gradient(135deg, rgba(184,115,51,0.12), rgba(196,149,106,0.08))',
+          borderColor: 'rgba(184,115,51,0.2)', textAlign: 'center', marginBottom: 20
+        }}>
+          <Crown size={40} style={{ color: 'var(--gold)', margin: '0 auto 12px' }} />
+          <h1 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6, color: 'var(--text)' }}>Premium faol</h1>
+          <p style={{ color: 'var(--text3)', fontSize: 14 }}>{status?.days_remaining} kun qoldi</p>
         </div>
-        <div className="mt-6 space-y-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {plans[0]?.features?.map((f, i) => (
-            <div key={i} className="flex items-center gap-3 text-green-500">
-              <Check size={20} />
-              <span className={textClass}>{f}</span>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--text2)' }}>
+              <Check size={16} style={{ color: 'var(--green)', flexShrink: 0 }} /> {f}
             </div>
           ))}
         </div>
@@ -127,136 +106,145 @@ export default function Premium() {
 
   if (status?.latest_payment?.status === 'pending') {
     return (
-      <div className="min-h-screen p-4 pb-24">
-        <div className={`${cardClass} rounded-2xl p-6 text-center`}>
-          <div className="text-6xl mb-4">⏳</div>
-          <h1 className={`text-xl font-bold mb-2 ${textClass}`}>{t('premium.pending')}</h1>
-          <p className={subTextClass}>{t('premium.pendingDesc')}</p>
+      <div className="page">
+        <div className="card" style={{ textAlign: 'center', padding: 40 }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>⏳</div>
+          <h1 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, color: 'var(--text)' }}>Tekshirilmoqda</h1>
+          <p style={{ color: 'var(--text3)', fontSize: 13 }}>To'lovingiz tekshirilmoqda. Tez orada natija bildiriladi.</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen p-4 pb-24">
-      <h1 className={`text-2xl font-bold mb-6 ${textClass}`}>{t('premium.title')}</h1>
+    <div className="page">
+      <div className="page-header">
+        <Crown size={26} style={{ color: 'var(--gold)' }} />
+        <div>
+          <h1 className="page-title">Premium</h1>
+          <p className="page-subtitle">Barcha imkoniyatlarni oching</p>
+        </div>
+      </div>
 
       {/* Plans */}
-      <div className="space-y-4 mb-6">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
         {plans.map(plan => (
-          <motion.div
+          <button
             key={plan.type}
+            type="button"
             onClick={() => setSelectedPlan(plan.type)}
-            className={`${cardClass} rounded-2xl p-4 cursor-pointer transition ${
-              selectedPlan === plan.type ? 'ring-2 ring-amber-500' : ''
-            }`}
-            whileHover={{ scale: 1.02 }}
+            className="card"
+            style={{
+              textAlign: 'left', cursor: 'pointer', width: '100%',
+              borderColor: selectedPlan === plan.type ? 'var(--gold)' : 'var(--border)',
+              background: selectedPlan === plan.type ? 'rgba(184,115,51,0.07)' : 'var(--surface)',
+              transition: 'all 0.18s',
+            }}
           >
-            <div className="flex items-center justify-between mb-3">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <div>
-                <h3 className={`font-bold text-lg ${textClass}`}>{plan.name}</h3>
-                <p className={`text-sm ${subTextClass}`}>{plan.duration}</p>
+                <p style={{ fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{plan.name}</p>
+                <p style={{ fontSize: 12, color: 'var(--text3)' }}>{plan.duration}</p>
               </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold text-amber-500">{plan.price_formatted}</p>
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--gold)' }}>{plan.price_formatted}</p>
                 {plan.discount && (
-                  <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
-                    -{plan.discount}
-                  </span>
+                  <span className="badge badge-green" style={{ fontSize: 10 }}>-{plan.discount}</span>
                 )}
               </div>
             </div>
-            <div className="space-y-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
               {plan.features?.map((f, i) => (
-                <div key={i} className={`flex items-center gap-2 text-sm ${subTextClass}`}>
-                  <Check size={16} className="text-green-500" />
-                  {f}
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, color: 'var(--text3)' }}>
+                  <Check size={13} style={{ color: 'var(--green)', flexShrink: 0 }} /> {f}
                 </div>
               ))}
             </div>
-          </motion.div>
+          </button>
         ))}
       </div>
 
-      {/* Payment Info */}
+      {/* Payment info */}
       {paymentInfo ? (
-        <div className={`${cardClass} rounded-2xl p-4 mb-6`}>
-          <h3 className={`font-bold mb-4 ${textClass}`}>{t('premium.payment')}</h3>
-          <div className="space-y-3">
-            <div className={`flex items-center justify-between ${inputClass} rounded-xl p-3`}>
+        <div className="card" style={{ marginBottom: 16 }}>
+          <p style={{ fontWeight: 700, fontSize: 14, marginBottom: 12, color: 'var(--text)' }}>💳 To'lov ma'lumotlari</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ background: 'var(--bg2)', borderRadius: 10, padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <p className={`text-sm ${subTextClass}`}>{t('premium.cardNumber')}</p>
-                <p className={`font-mono font-bold ${textClass}`}>{paymentInfo.card_number || '-'}</p>
+                <p style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 2 }}>Karta raqami</p>
+                <p style={{ fontFamily: 'var(--mono)', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{paymentInfo.card_number || '-'}</p>
               </div>
-              <button onClick={copyCard} className="p-2">
-                {copied ? <Check className="text-green-500" size={20} /> : <Copy size={20} className={subTextClass} />}
+              <button onClick={copyCard} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6 }}>
+                {copied ? <Check size={18} style={{ color: 'var(--green)' }} /> : <Copy size={18} style={{ color: 'var(--text3)' }} />}
               </button>
             </div>
-            <div className={`${inputClass} rounded-xl p-3`}>
-              <p className={`text-sm ${subTextClass}`}>{t('premium.cardHolder')}</p>
-              <p className={`font-bold ${textClass}`}>{paymentInfo.card_holder || '-'}</p>
+            <div style={{ background: 'var(--bg2)', borderRadius: 10, padding: '10px 12px' }}>
+              <p style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 2 }}>Karta egasi</p>
+              <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{paymentInfo.card_holder || '-'}</p>
             </div>
             {paymentInfo.admin_username && (
-              <div className={`flex items-center justify-between ${inputClass} rounded-xl p-3`}>
+              <div style={{ background: 'var(--bg2)', borderRadius: 10, padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <p className={`text-sm ${subTextClass}`}>{t('premium.admin')}</p>
-                  <p className={`font-bold ${textClass}`}>{paymentInfo.admin_username}</p>
+                  <p style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 2 }}>Admin</p>
+                  <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{paymentInfo.admin_username}</p>
                 </div>
                 <a
                   href={`https://t.me/${paymentInfo.admin_username.replace('@', '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2"
+                  style={{ padding: 6 }}
                 >
-                  <ExternalLink size={20} className={subTextClass} />
+                  <ExternalLink size={18} style={{ color: 'var(--text3)' }} />
                 </a>
               </div>
             )}
           </div>
         </div>
       ) : (
-        <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-2xl p-4 mb-6">
-          <div className="flex items-center gap-3">
-            <AlertCircle size={20} className="text-yellow-400" />
-            <p className="text-yellow-400 text-sm">{t('errors.network')}</p>
+        <div className="card" style={{ marginBottom: 16, borderColor: 'rgba(184,115,51,0.2)', background: 'var(--gold-dim)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <AlertCircle size={18} style={{ color: 'var(--gold)' }} />
+            <p style={{ color: 'var(--gold)', fontSize: 13 }}>To'lov ma'lumotlari yuklanmadi</p>
           </div>
         </div>
       )}
 
       {/* Upload */}
-      <div className={`${cardClass} rounded-2xl p-4 mb-6`}>
-        <h3 className={`font-bold mb-4 ${textClass}`}>{t('premium.uploadCheck')}</h3>
-        <label className="block">
-          <div className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition ${
-            screenshot ? 'border-green-500 bg-green-500/10' : isDark ? 'border-slate-600 hover:border-slate-500' : 'border-slate-300 hover:border-slate-400'
-          }`}>
-            <Upload size={32} className={`mx-auto mb-2 ${screenshot ? 'text-green-400' : subTextClass}`} />
+      <div className="card" style={{ marginBottom: 16 }}>
+        <p style={{ fontWeight: 700, fontSize: 14, marginBottom: 12, color: 'var(--text)' }}>📸 Chekni yuklang</p>
+        <label style={{ display: 'block', cursor: 'pointer' }}>
+          <div style={{
+            border: `2px dashed ${screenshot ? 'var(--green)' : 'var(--border2)'}`,
+            borderRadius: 12, padding: '24px 16px', textAlign: 'center',
+            background: screenshot ? 'var(--green-dim)' : 'var(--bg2)',
+            transition: 'all 0.18s',
+          }}>
+            <Upload size={28} style={{ color: screenshot ? 'var(--green)' : 'var(--text3)', margin: '0 auto 8px', display: 'block' }} />
             {screenshot ? (
-              <div>
-                <p className="text-green-500 font-medium">{screenshot.name}</p>
-                <p className={`text-sm mt-1 ${subTextClass}`}>{(screenshot.size / 1024).toFixed(1)} KB</p>
-              </div>
+              <>
+                <p style={{ color: 'var(--green)', fontWeight: 600, fontSize: 13 }}>{screenshot.name}</p>
+                <p style={{ color: 'var(--text3)', fontSize: 12, marginTop: 3 }}>{(screenshot.size / 1024).toFixed(1)} KB</p>
+              </>
             ) : (
-              <div>
-                <p className={subTextClass}>{t('premium.uploadImage')}</p>
-                <p className={`text-sm mt-1 ${subTextClass}`}>JPG, PNG (max 10MB)</p>
-              </div>
+              <>
+                <p style={{ color: 'var(--text3)', fontSize: 13 }}>Rasm yuklash uchun bosing</p>
+                <p style={{ color: 'var(--text3)', fontSize: 11, marginTop: 3 }}>JPG, PNG (max 10MB)</p>
+              </>
             )}
           </div>
-          <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+          <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
         </label>
       </div>
 
       {/* Submit */}
-      <motion.button
+      <button
         onClick={submitPayment}
         disabled={!screenshot || !paymentInfo || submitting}
-        className="w-full bg-gradient-to-r from-amber-500 to-orange-600 py-4 rounded-xl font-bold text-white disabled:opacity-50"
-        whileHover={!submitting && screenshot ? { scale: 1.02 } : {}}
-        whileTap={!submitting && screenshot ? { scale: 0.98 } : {}}
+        className="btn btn-full btn-lg"
+        style={{ background: 'linear-gradient(135deg, var(--gold), var(--accent))', color: 'white', fontWeight: 700 }}
       >
-        {submitting ? t('loading') : t('premium.submit')}
-      </motion.button>
+        {submitting ? 'Yuklanmoqda...' : "To'lovni yuborish"}
+      </button>
     </div>
   )
 }

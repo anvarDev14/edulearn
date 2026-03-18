@@ -1,17 +1,24 @@
 import { useState, useEffect } from 'react'
-import { Check, X, ExternalLink } from 'lucide-react'
+import { Check, X, ExternalLink, ChevronLeft } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { adminAPI } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 import Loader from '../../components/common/Loader'
 
+const getScreenshotUrl = (url) => {
+  if (!url) return null
+  if (url.startsWith('http')) return url
+  const base = import.meta.env.VITE_API_URL?.replace('/api', '') || ''
+  return `${base}/${url}`
+}
+
 export default function AdminPayments() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadPayments()
-  }, [])
+  useEffect(() => { loadPayments() }, [])
 
   const loadPayments = async () => {
     try {
@@ -27,79 +34,93 @@ export default function AdminPayments() {
   const reviewPayment = async (id, approved) => {
     const note = approved ? '' : prompt('Rad etish sababi:')
     if (!approved && note === null) return
-
     try {
       await adminAPI.reviewPayment(id, approved, note)
       loadPayments()
-      alert(approved ? 'Tasdiqlandi!' : 'Rad etildi!')
     } catch (error) {
-      alert('Xatolik')
+      alert('Xatolik: ' + (error.response?.data?.detail || 'Server xatosi'))
     }
   }
 
-  if (!user?.is_admin) {
-    return (
-      <div className="p-4 text-center">
-        <p className="text-red-500 text-xl">🚫 Ruxsat yo'q</p>
-      </div>
-    )
-  }
+  if (!user?.is_admin) return (
+    <div className="page" style={{ textAlign: 'center' }}>
+      <p style={{ color: 'var(--red)', fontSize: 18 }}>🚫 Ruxsat yo'q</p>
+    </div>
+  )
 
   if (loading) return <Loader />
 
   return (
-    <div className="min-h-screen p-4 pb-24">
-      <h1 className="text-2xl font-bold mb-6">💳 Kutayotgan to'lovlar</h1>
+    <div className="page">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
+        <button onClick={() => navigate('/admin')} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+          <ChevronLeft size={18} style={{ color: 'var(--text)' }} />
+        </button>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>💳 Kutilayotgan to'lovlar</h1>
+          <p style={{ fontSize: 13, color: 'var(--text3)' }}>{payments.length} ta so'rov</p>
+        </div>
+      </div>
 
       {payments.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-6xl mb-4">✅</p>
-          <p className="text-slate-400">Kutayotgan to'lovlar yo'q</p>
+        <div className="empty">
+          <span className="empty-icon">✅</span>
+          <p className="empty-title">Kutilayotgan to'lovlar yo'q</p>
+          <p className="empty-desc">Barcha to'lovlar ko'rib chiqilgan</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {payments.map(payment => (
-            <div key={payment.id} className="bg-slate-800 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="font-semibold">{payment.user?.full_name}</p>
-                  <p className="text-slate-400 text-sm">@{payment.user?.username}</p>
+            <div key={payment.id} className="card">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--primary-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
+                    {payment.user?.full_name?.[0] || '?'}
+                  </div>
+                  <div>
+                    <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>{payment.user?.full_name}</p>
+                    <p style={{ fontSize: 12, color: 'var(--text3)' }}>@{payment.user?.username}</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-xl font-bold text-green-400">
-                    {payment.amount?.toLocaleString()} so'm
-                  </p>
-                  <p className="text-slate-400 text-sm">{payment.plan_type}</p>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--green)' }}>{payment.amount?.toLocaleString()} so'm</p>
+                  <span className="badge badge-primary" style={{ fontSize: 10 }}>{payment.plan_type}</span>
                 </div>
               </div>
 
               <a
-                href={payment.screenshot_url}
+                href={getScreenshotUrl(payment.screenshot_url)}
                 target="_blank"
-                className="block bg-slate-700 rounded-xl p-3 mb-3 flex items-center justify-center gap-2 text-blue-400"
+                rel="noopener noreferrer"
+                className="card card-sm"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  marginBottom: 12, color: 'var(--primary)', fontWeight: 600, fontSize: 13,
+                  background: 'var(--primary-dim)', borderColor: 'rgba(123,79,58,0.15)',
+                  textDecoration: 'none',
+                }}
               >
-                <ExternalLink size={18} />
-                Chekni ko'rish
+                <ExternalLink size={15} /> Chekni ko'rish
               </a>
 
-              <p className="text-slate-400 text-xs mb-3">
-                {new Date(payment.created_at).toLocaleString()}
+              <p style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 12 }}>
+                {new Date(payment.created_at).toLocaleString('uz-UZ')}
               </p>
 
-              <div className="flex gap-3">
+              <div style={{ display: 'flex', gap: 10 }}>
                 <button
                   onClick={() => reviewPayment(payment.id, false)}
-                  className="flex-1 py-3 bg-red-500/20 text-red-400 rounded-xl flex items-center justify-center gap-2"
+                  className="btn btn-danger"
+                  style={{ flex: 1 }}
                 >
-                  <X size={20} />
-                  Rad etish
+                  <X size={16} /> Rad etish
                 </button>
                 <button
                   onClick={() => reviewPayment(payment.id, true)}
-                  className="flex-1 py-3 bg-green-500 rounded-xl flex items-center justify-center gap-2 font-bold"
+                  className="btn btn-primary"
+                  style={{ flex: 1 }}
                 >
-                  <Check size={20} />
-                  Tasdiqlash
+                  <Check size={16} /> Tasdiqlash
                 </button>
               </div>
             </div>

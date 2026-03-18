@@ -20,200 +20,175 @@ export default function Settings() {
   }, [notifications])
 
   const handleLogout = () => {
-    if (confirm(t('settings.logoutConfirm'))) {
+    if (confirm('Chiqishni tasdiqlaysizmi?')) {
       logout()
       navigate('/')
     }
   }
 
-  // Card style based on theme
-  const cardClass = isDark ? 'bg-slate-800' : 'bg-white shadow-sm'
-  const textClass = isDark ? 'text-white' : 'text-slate-800'
-  const subTextClass = isDark ? 'text-slate-400' : 'text-slate-500'
-  const bgItemClass = isDark ? 'bg-slate-700' : 'bg-slate-100'
+  const Row = ({ icon, label, right, onClick }) => (
+    <div
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '13px 15px',
+        cursor: onClick ? 'pointer' : 'default',
+        transition: 'background 0.15s',
+      }}
+    >
+      <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--bg2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        {icon}
+      </div>
+      <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>{label}</span>
+      {right}
+    </div>
+  )
+
+  const Toggle = ({ value }) => (
+    <div style={{
+      width: 44, height: 24, borderRadius: 12, flexShrink: 0,
+      background: value ? 'var(--primary)' : 'var(--border2)',
+      position: 'relative', transition: 'background 0.2s',
+    }}>
+      <div style={{
+        position: 'absolute', top: 2, left: value ? 22 : 2,
+        width: 20, height: 20, borderRadius: '50%', background: 'white',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
+        transition: 'left 0.2s',
+      }} />
+    </div>
+  )
 
   return (
-    <div className={`p-4 pb-24 min-h-screen transition-colors`}>
-      <h1 className={`text-2xl font-bold mb-6 ${textClass}`}>{t('settings.title')}</h1>
-
-      {/* User Card */}
-      <div className={`rounded-xl p-4 mb-6 ${cardClass}`}>
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-3xl">
-            {user?.is_premium ? '👑' : '👤'}
-          </div>
-          <div className="flex-1">
-            <h2 className={`font-bold text-lg ${textClass}`}>{user?.full_name || 'User'}</h2>
-            <p className={`text-sm ${subTextClass}`}>@{user?.username || 'username'}</p>
-            <div className="flex items-center gap-2 mt-1">
-              {user?.is_premium ? (
-                <span className="text-xs bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <Crown size={12} /> {t('profile.premium')}
-                </span>
-              ) : (
-                <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-200 text-slate-500'}`}>
-                  {t('profile.free')}
-                </span>
-              )}
-              {user?.is_admin && (
-                <span className="text-xs bg-blue-500/20 text-blue-500 px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <Shield size={12} /> Admin
-                </span>
-              )}
-            </div>
-          </div>
+    <div className="page">
+      <div className="page-header">
+        <span style={{ fontSize: 24 }}>⚙️</span>
+        <div>
+          <h1 className="page-title">{t('settings.title')}</h1>
+          <p className="page-subtitle">Ilova sozlamalari</p>
         </div>
       </div>
 
-      {/* Premium Banner */}
+      {/* User card */}
+      <div className="card card-sm" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: '50%',
+          background: 'var(--primary-dim)', border: '2px solid var(--primary)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, overflow: 'hidden', flexShrink: 0
+        }}>
+          {user?.photo_url
+            ? <img src={user.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{user?.full_name?.[0] || '?'}</span>
+          }
+        </div>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{user?.full_name || 'User'}</p>
+          <p style={{ fontSize: 13, color: 'var(--text3)' }}>@{user?.username || 'username'}</p>
+        </div>
+        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {user?.is_premium && <span className="badge badge-gold"><Crown size={10} /> Premium</span>}
+          {user?.is_admin && <span className="badge badge-red"><Shield size={10} /> Admin</span>}
+        </div>
+      </div>
+
+      {/* Premium banner */}
       {!user?.is_premium && (
-        <div
+        <button
           onClick={() => navigate('/premium')}
-          className="bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl p-4 mb-6 cursor-pointer"
+          className="card card-sm"
+          style={{
+            width: '100%', marginBottom: 16, textAlign: 'left',
+            background: 'linear-gradient(135deg, rgba(184,115,51,0.1), rgba(196,149,106,0.07))',
+            borderColor: 'rgba(184,115,51,0.2)', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 12,
+          }}
         >
-          <div className="flex items-center gap-3">
-            <Crown size={28} className="text-white" />
-            <div className="flex-1">
-              <p className="font-bold text-white">{t('settings.goPremium')}</p>
-              <p className="text-white/80 text-sm">{t('settings.allAccess')}</p>
-            </div>
-            <ChevronRight size={20} className="text-white" />
+          <Crown size={24} style={{ color: 'var(--gold)', flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <p style={{ fontWeight: 700, color: 'var(--text)', fontSize: 14 }}>{t('settings.goPremium')}</p>
+            <p style={{ color: 'var(--text3)', fontSize: 12 }}>{t('settings.allAccess')}</p>
           </div>
+          <ChevronRight size={16} style={{ color: 'var(--text3)' }} />
+        </button>
+      )}
+
+      {/* Settings sections */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: 12 }}>
+        <Row
+          icon={isDark ? <Moon size={16} style={{ color: 'var(--primary)' }} /> : <Sun size={16} style={{ color: 'var(--gold)' }} />}
+          label={t('settings.darkMode')}
+          onClick={toggleTheme}
+          right={<Toggle value={isDark} />}
+        />
+        <div style={{ borderTop: '1px solid var(--border)' }} />
+        <Row
+          icon={notifications ? <Bell size={16} style={{ color: 'var(--green)' }} /> : <BellOff size={16} style={{ color: 'var(--text3)' }} />}
+          label={t('settings.notifications')}
+          onClick={() => setNotifications(!notifications)}
+          right={<Toggle value={notifications} />}
+        />
+      </div>
+
+      <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: 12 }}>
+        <div style={{ padding: '12px 15px 8px' }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+            {t('settings.language')}
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: 8, padding: '0 15px 14px' }}>
+          {[
+            { code: 'uz', label: "O'zbek", flag: '🇺🇿' },
+            { code: 'ru', label: 'Русский', flag: '🇷🇺' },
+            { code: 'en', label: 'English', flag: '🇬🇧' },
+          ].map(lang => (
+            <button
+              key={lang.code}
+              onClick={() => setLanguage(lang.code)}
+              className={`btn btn-sm${language === lang.code ? ' btn-primary' : ' btn-secondary'}`}
+              style={{ flex: 1 }}
+            >
+              {lang.flag} {lang.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {user?.is_admin && (
+        <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: 12 }}>
+          <Row
+            icon={<Shield size={16} style={{ color: 'var(--red)' }} />}
+            label={t('settings.adminPanel')}
+            onClick={() => navigate('/admin')}
+            right={<ChevronRight size={15} style={{ color: 'var(--text3)' }} />}
+          />
         </div>
       )}
 
-      {/* Settings List */}
-      <div className="space-y-4">
-        {/* Theme */}
-        <div className={`rounded-xl p-4 ${cardClass}`}>
-          <h3 className={`font-bold mb-3 ${textClass}`}>{t('settings.appearance')}</h3>
-          <div
-            onClick={toggleTheme}
-            className="flex items-center justify-between cursor-pointer"
-          >
-            <div className="flex items-center gap-3">
-              {isDark ? (
-                <Moon size={20} className="text-blue-400" />
-              ) : (
-                <Sun size={20} className="text-yellow-500" />
-              )}
-              <span className={textClass}>{t('settings.darkMode')}</span>
-            </div>
-            <div className={`w-12 h-6 rounded-full transition-colors ${
-              isDark ? 'bg-blue-500' : 'bg-slate-300'
-            }`}>
-              <div className={`w-5 h-5 bg-white rounded-full mt-0.5 transition-transform shadow ${
-                isDark ? 'translate-x-6' : 'translate-x-0.5'
-              }`} />
-            </div>
+      <div className="card" style={{ padding: '12px 15px', marginBottom: 16 }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 10 }}>
+          {t('settings.account')}
+        </p>
+        {[
+          [t('settings.telegramId'), user?.telegram_id || '-'],
+          [t('profile.level'), user?.level || 1],
+          [t('home.totalXP'), user?.total_xp?.toLocaleString() || 0],
+          [t('settings.registeredAt'), user?.created_at ? new Date(user.created_at).toLocaleDateString() : '-'],
+        ].map(([k, v]) => (
+          <div key={k} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
+            <span style={{ color: 'var(--text3)' }}>{k}</span>
+            <span style={{ color: 'var(--text)', fontWeight: 500 }}>{v}</span>
           </div>
-        </div>
-
-        {/* Notifications */}
-        <div className={`rounded-xl p-4 ${cardClass}`}>
-          <h3 className={`font-bold mb-3 ${textClass}`}>{t('settings.notifications')}</h3>
-          <div
-            onClick={() => setNotifications(!notifications)}
-            className="flex items-center justify-between cursor-pointer"
-          >
-            <div className="flex items-center gap-3">
-              {notifications ? (
-                <Bell size={20} className="text-green-500" />
-              ) : (
-                <BellOff size={20} className={subTextClass} />
-              )}
-              <span className={textClass}>{t('settings.notifications')}</span>
-            </div>
-            <div className={`w-12 h-6 rounded-full transition-colors ${
-              notifications ? 'bg-green-500' : isDark ? 'bg-slate-600' : 'bg-slate-300'
-            }`}>
-              <div className={`w-5 h-5 bg-white rounded-full mt-0.5 transition-transform shadow ${
-                notifications ? 'translate-x-6' : 'translate-x-0.5'
-              }`} />
-            </div>
-          </div>
-        </div>
-
-        {/* Language */}
-        <div className={`rounded-xl p-4 ${cardClass}`}>
-          <h3 className={`font-bold mb-3 ${textClass}`}>{t('settings.language')}</h3>
-          <div className="flex gap-2">
-            {[
-              { code: 'uz', label: "O'zbek", flag: '🇺🇿' },
-              { code: 'ru', label: 'Русский', flag: '🇷🇺' },
-              { code: 'en', label: 'English', flag: '🇬🇧' }
-            ].map(lang => (
-              <button
-                key={lang.code}
-                onClick={() => setLanguage(lang.code)}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition ${
-                  language === lang.code
-                    ? 'bg-blue-500 text-white'
-                    : `${bgItemClass} ${textClass}`
-                }`}
-              >
-                <span className="mr-1">{lang.flag}</span>
-                {lang.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Admin Panel Link */}
-        {user?.is_admin && (
-          <div
-            onClick={() => navigate('/admin')}
-            className={`rounded-xl p-4 cursor-pointer transition ${cardClass} hover:opacity-80`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Shield size={20} className="text-blue-500" />
-                <span className={textClass}>{t('settings.adminPanel')}</span>
-              </div>
-              <ChevronRight size={20} className={subTextClass} />
-            </div>
-          </div>
-        )}
-
-        {/* Account Info */}
-        <div className={`rounded-xl p-4 ${cardClass}`}>
-          <h3 className={`font-bold mb-3 ${textClass}`}>{t('settings.account')}</h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className={subTextClass}>{t('settings.telegramId')}</span>
-              <span className={textClass}>{user?.telegram_id || '-'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className={subTextClass}>{t('profile.level')}</span>
-              <span className={textClass}>{user?.level || 1}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className={subTextClass}>{t('home.totalXP')}</span>
-              <span className={textClass}>{user?.total_xp?.toLocaleString() || 0}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className={subTextClass}>{t('settings.registeredAt')}</span>
-              <span className={textClass}>
-                {user?.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          className="w-full bg-red-500/20 text-red-500 rounded-xl p-4 flex items-center justify-center gap-2 font-medium"
-        >
-          <LogOut size={20} />
-          {t('settings.logout')}
-        </button>
+        ))}
       </div>
 
-      {/* Version */}
-      <p className={`text-center text-sm mt-6 ${subTextClass}`}>
-        EduLearn v1.0.0
-      </p>
+      <button
+        onClick={handleLogout}
+        className="btn btn-danger btn-full"
+      >
+        <LogOut size={16} /> {t('settings.logout')}
+      </button>
+
+      <p style={{ textAlign: 'center', fontSize: 12, marginTop: 20, color: 'var(--text3)' }}>EduLearn v1.0.0</p>
     </div>
   )
 }

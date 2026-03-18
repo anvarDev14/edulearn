@@ -15,6 +15,7 @@ import Leaderboard from './pages/Leaderboard'
 import Profile from './pages/Profile'
 import Premium from './pages/Premium'
 import News from './pages/News'
+import NewsDetail from './pages/NewsDetail'
 import Settings from './pages/Settings'
 import Search from './pages/Search'
 import Challenges from './pages/Challenges'
@@ -48,14 +49,13 @@ function PrivateRoute({ children, adminOnly = false }) {
 }
 
 function PublicRoute({ children }) {
-  const { user, loading } = useAuth()
+  const { loading } = useAuth()
   if (loading) return <Loader />
-  if (user) return <Navigate to="/" replace />
   return children
 }
 
 function AppContent() {
-  const { loading, user } = useAuth()
+  const { loading } = useAuth()
 
   if (loading) return <Loader fullScreen />
 
@@ -76,7 +76,7 @@ function AppContent() {
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/premium" element={<PrivateRoute><Premium /></PrivateRoute>} />
           <Route path="/news" element={<PrivateRoute><News /></PrivateRoute>} />
-          <Route path="/news/:id" element={<PrivateRoute><News /></PrivateRoute>} />
+          <Route path="/news/:id" element={<PrivateRoute><NewsDetail /></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
           <Route path="/search" element={<PrivateRoute><Search /></PrivateRoute>} />
           <Route path="/challenges" element={<PrivateRoute><Challenges /></PrivateRoute>} />
