@@ -1,207 +1,229 @@
 import { useState } from 'react'
-import { Settings as SettingsIcon, CreditCard, Bell, Database, Shield, Save, Check } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import {
+  CreditCard, Bell, Shield, Save, Check,
+  ChevronLeft, Settings as SettingsIcon
+} from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
 export default function AdminSettings() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [saved, setSaved] = useState(false)
   const [settings, setSettings] = useState({
-    // Payment settings
     card_number: '8600 1234 5678 9012',
     card_holder: 'EDULEARN',
     admin_username: '@edulearn_admin',
     monthly_price: 50000,
     yearly_price: 500000,
-
-    // Notification settings
     notify_payments: true,
     notify_new_users: true,
     notify_quiz_completed: false,
-
-    // System settings
     maintenance_mode: false,
-    allow_registration: true
+    allow_registration: true,
   })
 
   const handleSave = () => {
-    // In real app, save to backend
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
 
-  if (!user?.is_admin) {
-    return (
-      <div className="p-4 text-center">
-        <p className="text-red-500 text-xl">Ruxsat yo'q</p>
-      </div>
-    )
+  if (!user?.is_admin) return (
+    <div className="page" style={{ textAlign: 'center' }}>
+      <p style={{ color: 'var(--red)', fontSize: 18 }}>🚫 Ruxsat yo'q</p>
+    </div>
+  )
+
+  /* ── helpers ── */
+  const inp = {
+    width: '100%', padding: '10px 12px',
+    background: 'var(--bg2)', border: '1.5px solid var(--border)',
+    borderRadius: 10, color: 'var(--text)', fontSize: 14,
+    outline: 'none', fontFamily: 'var(--font)',
+    transition: 'border-color 0.18s',
   }
 
+  const SectionLabel = ({ icon, children }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+      {icon}
+      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{children}</p>
+    </div>
+  )
+
+  const Toggle = ({ value, onChange }) => (
+    <div
+      onClick={onChange}
+      style={{
+        width: 46, height: 26, borderRadius: 13, flexShrink: 0,
+        background: value ? 'var(--primary)' : 'var(--border2)',
+        position: 'relative', transition: 'background 0.22s', cursor: 'pointer',
+      }}
+    >
+      <div style={{
+        position: 'absolute', top: 3, left: value ? 23 : 3,
+        width: 20, height: 20, borderRadius: '50%', background: 'white',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
+        transition: 'left 0.22s cubic-bezier(.22,.68,0,1.2)',
+      }} />
+    </div>
+  )
+
+  const ToggleRow = ({ label, sub, value, onChange }) => (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      gap: 12, padding: '12px 0',
+    }}>
+      <div>
+        <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)', marginBottom: sub ? 2 : 0 }}>{label}</p>
+        {sub && <p style={{ fontSize: 12, color: 'var(--text3)' }}>{sub}</p>}
+      </div>
+      <Toggle value={value} onChange={onChange} />
+    </div>
+  )
+
+  const sep = <div style={{ height: 1, background: 'var(--border)' }} />
+
   return (
-    <div className="p-4 pb-24">
-      <h1 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-        <SettingsIcon size={24} />
-        Sozlamalar
-      </h1>
+    <div className="page">
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
+        <button
+          onClick={() => navigate('/admin')}
+          style={{
+            background: 'var(--bg2)', border: '1px solid var(--border)',
+            borderRadius: 10, width: 36, height: 36,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', flexShrink: 0,
+          }}
+        >
+          <ChevronLeft size={18} style={{ color: 'var(--text)' }} />
+        </button>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>Sozlamalar</h1>
+          <p style={{ fontSize: 13, color: 'var(--text3)' }}>Platforma konfiguratsiyasi</p>
+        </div>
+      </div>
 
-      {/* Payment Settings */}
-      <div className="bg-slate-800 rounded-2xl p-5 mb-4">
-        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <CreditCard size={20} className="text-green-400" />
+      {/* Payment settings */}
+      <div className="card" style={{ marginBottom: 12 }}>
+        <SectionLabel icon={<CreditCard size={17} style={{ color: 'var(--green)' }} />}>
           To'lov sozlamalari
-        </h2>
+        </SectionLabel>
 
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
-            <label className="text-slate-400 text-sm block mb-2">Karta raqami</label>
+            <label className="input-label">Karta raqami</label>
             <input
-              type="text"
+              style={{ ...inp, fontFamily: 'var(--mono)' }}
+              placeholder="8600 1234 5678 9012"
               value={settings.card_number}
               onChange={e => setSettings({ ...settings, card_number: e.target.value })}
-              className="w-full bg-slate-700 rounded-xl p-3 text-white font-mono"
-              placeholder="8600 1234 5678 9012"
             />
           </div>
 
           <div>
-            <label className="text-slate-400 text-sm block mb-2">Karta egasi</label>
+            <label className="input-label">Karta egasi</label>
             <input
-              type="text"
+              style={inp}
+              placeholder="EDULEARN"
               value={settings.card_holder}
               onChange={e => setSettings({ ...settings, card_holder: e.target.value })}
-              className="w-full bg-slate-700 rounded-xl p-3 text-white"
-              placeholder="EDULEARN"
             />
           </div>
 
           <div>
-            <label className="text-slate-400 text-sm block mb-2">Admin username (Telegram)</label>
+            <label className="input-label">Admin Telegram username</label>
             <input
-              type="text"
+              style={inp}
+              placeholder="@edulearn_admin"
               value={settings.admin_username}
               onChange={e => setSettings({ ...settings, admin_username: e.target.value })}
-              className="w-full bg-slate-700 rounded-xl p-3 text-white"
-              placeholder="@edulearn_admin"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div>
-              <label className="text-slate-400 text-sm block mb-2">Oylik narx (so'm)</label>
+              <label className="input-label">Oylik narx (so'm)</label>
               <input
+                style={inp}
                 type="number"
                 value={settings.monthly_price}
                 onChange={e => setSettings({ ...settings, monthly_price: parseInt(e.target.value) || 0 })}
-                className="w-full bg-slate-700 rounded-xl p-3 text-white"
               />
             </div>
             <div>
-              <label className="text-slate-400 text-sm block mb-2">Yillik narx (so'm)</label>
+              <label className="input-label">Yillik narx (so'm)</label>
               <input
+                style={inp}
                 type="number"
                 value={settings.yearly_price}
                 onChange={e => setSettings({ ...settings, yearly_price: parseInt(e.target.value) || 0 })}
-                className="w-full bg-slate-700 rounded-xl p-3 text-white"
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Notification Settings */}
-      <div className="bg-slate-800 rounded-2xl p-5 mb-4">
-        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <Bell size={20} className="text-yellow-400" />
+      {/* Notifications */}
+      <div className="card" style={{ marginBottom: 12 }}>
+        <SectionLabel icon={<Bell size={17} style={{ color: 'var(--gold)' }} />}>
           Bildirishnomalar
-        </h2>
+        </SectionLabel>
 
-        <div className="space-y-3">
-          <label className="flex items-center justify-between bg-slate-700/50 rounded-xl p-4 cursor-pointer">
-            <span className="text-white">Yangi to'lovlar</span>
-            <input
-              type="checkbox"
-              checked={settings.notify_payments}
-              onChange={e => setSettings({ ...settings, notify_payments: e.target.checked })}
-              className="w-5 h-5 accent-green-500"
-            />
-          </label>
-
-          <label className="flex items-center justify-between bg-slate-700/50 rounded-xl p-4 cursor-pointer">
-            <span className="text-white">Yangi foydalanuvchilar</span>
-            <input
-              type="checkbox"
-              checked={settings.notify_new_users}
-              onChange={e => setSettings({ ...settings, notify_new_users: e.target.checked })}
-              className="w-5 h-5 accent-green-500"
-            />
-          </label>
-
-          <label className="flex items-center justify-between bg-slate-700/50 rounded-xl p-4 cursor-pointer">
-            <span className="text-white">Quiz yakunlanganda</span>
-            <input
-              type="checkbox"
-              checked={settings.notify_quiz_completed}
-              onChange={e => setSettings({ ...settings, notify_quiz_completed: e.target.checked })}
-              className="w-5 h-5 accent-green-500"
-            />
-          </label>
-        </div>
+        <ToggleRow
+          label="Yangi to'lovlar"
+          value={settings.notify_payments}
+          onChange={() => setSettings(s => ({ ...s, notify_payments: !s.notify_payments }))}
+        />
+        {sep}
+        <ToggleRow
+          label="Yangi foydalanuvchilar"
+          value={settings.notify_new_users}
+          onChange={() => setSettings(s => ({ ...s, notify_new_users: !s.notify_new_users }))}
+        />
+        {sep}
+        <ToggleRow
+          label="Quiz yakunlanganda"
+          value={settings.notify_quiz_completed}
+          onChange={() => setSettings(s => ({ ...s, notify_quiz_completed: !s.notify_quiz_completed }))}
+        />
       </div>
 
-      {/* System Settings */}
-      <div className="bg-slate-800 rounded-2xl p-5 mb-6">
-        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <Shield size={20} className="text-blue-400" />
+      {/* System */}
+      <div className="card" style={{ marginBottom: 20 }}>
+        <SectionLabel icon={<Shield size={17} style={{ color: 'var(--primary)' }} />}>
           Tizim sozlamalari
-        </h2>
+        </SectionLabel>
 
-        <div className="space-y-3">
-          <label className="flex items-center justify-between bg-slate-700/50 rounded-xl p-4 cursor-pointer">
-            <div>
-              <span className="text-white block">Texnik ishlar rejimi</span>
-              <span className="text-slate-400 text-sm">Foydalanuvchilar kira olmaydi</span>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.maintenance_mode}
-              onChange={e => setSettings({ ...settings, maintenance_mode: e.target.checked })}
-              className="w-5 h-5 accent-red-500"
-            />
-          </label>
-
-          <label className="flex items-center justify-between bg-slate-700/50 rounded-xl p-4 cursor-pointer">
-            <div>
-              <span className="text-white block">Ro'yxatdan o'tish</span>
-              <span className="text-slate-400 text-sm">Yangi foydalanuvchilar qo'shilishi</span>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.allow_registration}
-              onChange={e => setSettings({ ...settings, allow_registration: e.target.checked })}
-              className="w-5 h-5 accent-green-500"
-            />
-          </label>
-        </div>
+        <ToggleRow
+          label="Texnik ishlar rejimi"
+          sub="Yoqilsa foydalanuvchilar kira olmaydi"
+          value={settings.maintenance_mode}
+          onChange={() => setSettings(s => ({ ...s, maintenance_mode: !s.maintenance_mode }))}
+        />
+        {sep}
+        <ToggleRow
+          label="Ro'yxatdan o'tish"
+          sub="Yangi foydalanuvchilar qo'shilishi"
+          value={settings.allow_registration}
+          onChange={() => setSettings(s => ({ ...s, allow_registration: !s.allow_registration }))}
+        />
       </div>
 
-      {/* Save Button */}
+      {/* Save */}
       <button
         onClick={handleSave}
-        className={`w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition ${
-          saved ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'
-        }`}
+        className="btn btn-full btn-lg"
+        style={{
+          background: saved ? 'var(--green)' : 'var(--primary)',
+          color: 'white',
+          transition: 'background 0.2s',
+        }}
       >
-        {saved ? (
-          <>
-            <Check size={20} />
-            Saqlandi!
-          </>
-        ) : (
-          <>
-            <Save size={20} />
-            Saqlash
-          </>
-        )}
+        {saved
+          ? <><Check size={18} /> Saqlandi!</>
+          : <><Save size={18} /> Saqlash</>
+        }
       </button>
     </div>
   )
