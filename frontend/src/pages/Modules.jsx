@@ -39,51 +39,84 @@ export default function Modules() {
   if (loading) return <Loader />
 
   return (
-    <div className="p-4 pb-20">
-      <h1 className="text-2xl font-bold text-white mb-2">📚 Modullar</h1>
-      <p className="text-slate-400 mb-6">O'rganishni davom eting</p>
+    <div className="page">
+      <header className="page-header">
+        <div className="emoji-soft" style={{ fontSize: 28 }}>
+          📚
+        </div>
+        <div>
+          <h1 className="page-title">Modullar</h1>
+          <p className="page-subtitle">Kurslarni tartibli va aniq ko‘rinishda ko‘ring</p>
+        </div>
+      </header>
 
-      <div className="space-y-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {modules.map(module => {
           const progress = getModuleProgress(module)
           const locked = isModuleLocked(module)
 
           return (
-            <div
+            <button
               key={module.id}
+              type="button"
               onClick={() => !locked && navigate(`/modules/${module.id}`)}
-              className={`bg-slate-800 rounded-xl p-4 transition ${
-                locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-700'
-              }`}
+              className="card card-sm"
+              style={{
+                opacity: locked ? 0.55 : 1,
+                cursor: locked ? 'not-allowed' : 'pointer',
+                textAlign: 'left',
+                padding: 16
+              }}
             >
-              <div className="flex items-center gap-4">
-                <div className="text-4xl">{module.emoji || '📖'}</div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-white">{module.title}</h3>
-                    {module.is_premium && <Crown size={16} className="text-amber-500" />}
-                    {locked && <Lock size={14} className="text-slate-400" />}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <span className="emoji-soft" style={{ fontSize: 26 }}>
+                  {module.emoji || '📖'}
+                </span>
+
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <h3 style={{ fontSize: 15, fontWeight: 600 }}>{module.title}</h3>
+                    {module.is_premium && (
+                      <span className="badge badge-gold">
+                        <Crown size={12} />
+                        Premium
+                      </span>
+                    )}
+                    {locked && !module.is_premium && (
+                      <span className="badge badge-red">
+                        <Lock size={11} />
+                        Yopiq
+                      </span>
+                    )}
                   </div>
-                  <p className="text-slate-400 text-sm">
-                    {module.lessons?.length || 0} ta dars
+
+                  <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 6 }}>
+                    {(module.lessons?.length || 0)} ta dars
                   </p>
 
-                  {/* Progress bar */}
                   {!locked && module.lessons?.length > 0 && (
-                    <div className="mt-2">
-                      <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="text-slate-400">{progress}% tugatildi</span>
+                    <div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          fontSize: 11,
+                          marginBottom: 4,
+                          color: 'var(--text3)'
+                        }}
+                      >
+                        <span>{progress}% tugatildi</span>
                         {progress === 100 && (
-                          <span className="text-green-400 flex items-center gap-1">
-                            <CheckCircle size={12} /> Tugatildi
+                          <span style={{ color: 'var(--green)', display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                            <CheckCircle size={11} />
+                            Tugatildi
                           </span>
                         )}
                       </div>
-                      <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                      <div className="progress-bar">
                         <div
-                          className={`h-full rounded-full transition-all ${
-                            progress === 100 ? 'bg-green-500' : 'bg-blue-500'
-                          }`}
+                          className="progress-bar-fill"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
@@ -91,40 +124,42 @@ export default function Modules() {
                   )}
                 </div>
 
-                {locked ? (
-                  <div className="bg-amber-500/20 text-amber-400 text-xs px-2 py-1 rounded-full">
-                    Premium
-                  </div>
-                ) : (
-                  <ChevronRight size={20} className="text-slate-400" />
-                )}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+                  {locked && (
+                    <span
+                      className="badge badge-gold"
+                      style={{ fontSize: 10, paddingInline: 10, paddingBlock: 3 }}
+                    >
+                      <Lock size={11} />
+                      Premium
+                    </span>
+                  )}
+                  <ChevronRight size={18} style={{ color: 'var(--text3)' }} />
+                </div>
               </div>
-            </div>
+            </button>
           )
         })}
 
         {modules.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-6xl mb-4">📚</p>
-            <p className="text-slate-400">Modullar hali qo'shilmagan</p>
+          <div className="empty">
+            <span className="empty-icon emoji-soft">📚</span>
+            <p className="empty-title">Modullar hali qo‘shilmagan</p>
+            <p className="empty-desc">Tez orada bu yerda kurslar paydo bo‘ladi.</p>
           </div>
         )}
       </div>
 
-      {/* Premium banner */}
       {!user?.is_premium && modules.some(m => m.is_premium) && (
-        <div
-          onClick={() => navigate('/premium')}
-          className="mt-6 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl p-4 cursor-pointer"
-        >
-          <div className="flex items-center gap-3">
-            <Crown size={24} className="text-white" />
-            <div className="flex-1">
-              <p className="font-bold text-white">Premium ga o'ting</p>
-              <p className="text-white/80 text-sm">Barcha darslarga kirish oling</p>
-            </div>
-            <ChevronRight size={20} className="text-white" />
-          </div>
+        <div style={{ marginTop: 20 }}>
+          <button
+            type="button"
+            onClick={() => navigate('/premium')}
+            className="btn btn-full btn-secondary"
+          >
+            <Crown size={18} />
+            Premium imkoniyatlarni ko‘rish
+          </button>
         </div>
       )}
     </div>
