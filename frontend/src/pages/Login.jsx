@@ -133,7 +133,7 @@ export default function Login() {
 
         {/* Bot link */}
         <a
-          href="https://t.me/edulearn_bot"
+          href="https://t.me/AS_subject_bot"
           target="_blank"
           rel="noreferrer"
           className="bot-link"
