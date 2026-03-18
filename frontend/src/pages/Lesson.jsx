@@ -67,8 +67,12 @@ export default function Lesson() {
 
   if (!lesson) {
     return (
-      <div className="p-4 text-center text-red-500">
-        Dars topilmadi
+      <div className="page">
+        <div className="empty">
+          <span className="empty-icon emoji-soft">📼</span>
+          <p className="empty-title">Dars topilmadi</p>
+          <p className="empty-desc">Ehtimol havola o‘zgargan yoki dars o‘chirib tashlangan.</p>
+        </div>
       </div>
     )
   }
@@ -76,96 +80,124 @@ export default function Lesson() {
   const embedUrl = getEmbedUrl(lesson.video_url)
 
   return (
-    <div className="pb-20">
+    <div className="page">
       {/* Header */}
-      <div className="bg-slate-800 p-4 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-2 text-white">
-          <ArrowLeft size={24} />
+      <header className="page-header" style={{ marginBottom: 16 }}>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="btn btn-secondary btn-sm"
+        >
+          <ArrowLeft size={16} />
+          Ortga
         </button>
-        <div className="flex-1">
-          <h1 className="font-bold text-white">{lesson.title}</h1>
-          <p className="text-slate-400 text-sm">{lesson.description}</p>
+        <div style={{ flex: 1 }}>
+          <h1 className="page-title" style={{ fontSize: 18 }}>{lesson.title}</h1>
+          <p className="page-subtitle" style={{ marginTop: 4 }}>{lesson.description}</p>
+        </div>
+      </header>
+
+      {/* Video Player */}
+      <div style={{ borderRadius: 20, overflow: 'hidden', border: '1px solid var(--border)', marginBottom: 16 }}>
+        {embedUrl ? (
+          <div style={{ position: 'relative', paddingBottom: '56.25%', background: 'black' }}>
+            <iframe
+              src={embedUrl}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              title={lesson.title}
+            />
+          </div>
+        ) : (
+          <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#020617' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div
+                className="emoji-soft"
+                style={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: '50%',
+                  border: '1px solid var(--border2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 12px',
+                  fontSize: 32
+                }}
+              >
+                <Play size={32} />
+              </div>
+              <p style={{ fontSize: 14, color: 'var(--text2)' }}>Video mavjud emas</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Lesson Info */}
+      <div className="card card-sm" style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 13, color: 'var(--text3)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <Clock size={16} /> {lesson.duration_min} daqiqa
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <Zap size={16} style={{ color: 'var(--gold)' }} /> {lesson.xp_reward} XP
+          </span>
         </div>
       </div>
 
-      {/* Video Player */}
-      {embedUrl ? (
-        <div className="aspect-video bg-black">
-          <iframe
-            src={embedUrl}
-            className="w-full h-full"
-            allowFullScreen
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            title={lesson.title}
-          />
-        </div>
-      ) : (
-        <div className="aspect-video bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Play size={40} className="text-white ml-1" />
-            </div>
-            <p className="text-white/60">Video mavjud emas</p>
-          </div>
+      {/* Content */}
+      {lesson.content && (
+        <div className="card" style={{ marginBottom: 18 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>📝 Dars matni</h3>
+          <p
+            style={{
+              fontSize: 14,
+              color: 'var(--text2)',
+              whiteSpace: 'pre-line',
+              lineHeight: 1.6
+            }}
+          >
+            {lesson.content}
+          </p>
         </div>
       )}
 
-      {/* Lesson Info */}
-      <div className="p-4">
-        <div className="flex items-center gap-4 text-slate-400 text-sm mb-4">
-          <span className="flex items-center gap-1">
-            <Clock size={16} /> {lesson.duration_min} daqiqa
-          </span>
-          <span className="flex items-center gap-1">
-            <Zap size={16} className="text-yellow-500" /> {lesson.xp_reward} XP
-          </span>
-        </div>
-
-        {/* Content */}
-        {lesson.content && (
-          <div className="bg-slate-800 rounded-xl p-4 mb-6">
-            <h3 className="font-bold text-white mb-3">📝 Dars matni</h3>
-            <p className="text-slate-300 whitespace-pre-line leading-relaxed">
-              {lesson.content}
-            </p>
-          </div>
-        )}
-
-        {/* Complete Button */}
-        {!lesson.is_completed ? (
+      {/* Complete / Quiz buttons */}
+      {!lesson.is_completed ? (
+        <button
+          type="button"
+          onClick={completeLesson}
+          disabled={completing}
+          className="btn btn-primary btn-full btn-lg"
+          style={{ marginTop: 4 }}
+        >
+          <CheckCircle size={18} />
+          {completing ? 'Yuklanmoqda...' : `Tugatish va ${lesson.xp_reward} XP olish`}
+        </button>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
           <button
-            onClick={completeLesson}
-            disabled={completing}
-            className="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white disabled:opacity-50"
+            type="button"
+            className="btn btn-full btn-lg"
+            style={{ background: 'var(--green-dim)', color: 'var(--green)' }}
+            disabled
           >
-            {completing ? 'Yuklanmoqda...' : (
-              <>
-                <CheckCircle size={20} />
-                Tugatish va {lesson.xp_reward} XP olish
-              </>
-            )}
+            <CheckCircle size={18} />
+            Tugatilgan
           </button>
-        ) : (
-          <div className="space-y-3">
-            <button
-              className="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 bg-green-500 text-white"
-              disabled
-            >
-              <CheckCircle size={20} />
-              Tugatilgan ✓
-            </button>
 
-            {lesson.has_quiz && (
-              <button
-                onClick={() => navigate(`/quiz/${lesson.quiz_id}`)}
-                className="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 bg-purple-500 text-white"
-              >
-                📝 Quizni boshlash
-              </button>
-            )}
-          </div>
-        )}
-      </div>
+          {lesson.has_quiz && (
+            <button
+              type="button"
+              onClick={() => navigate(`/quiz/${lesson.quiz_id}`)}
+              className="btn btn-secondary btn-full btn-lg"
+            >
+              📝 Quizni boshlash
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
