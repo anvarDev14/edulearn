@@ -55,6 +55,7 @@ app.add_middleware(
 
 # Static files (payment screenshots)
 os.makedirs("uploads/payments", exist_ok=True)
+os.makedirs("uploads/videos", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Routers

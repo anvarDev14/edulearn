@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { friendsAPI, searchAPI } from '../api'
+import { useState, useEffect, useRef } from 'react'
+import { friendsAPI } from '../api'
 
 function Avatar({ user, size = 44 }) {
   return (
@@ -21,6 +21,7 @@ export default function Friends() {
   const [searchResults, setSearchResults] = useState([])
   const [searching, setSearching] = useState(false)
   const [toast, setToast] = useState('')
+  const debounceRef = useRef(null)
 
   useEffect(() => {
     Promise.all([
@@ -34,13 +35,20 @@ export default function Friends() {
     setTimeout(() => setToast(''), 2500)
   }
 
-  const doSearch = async (q) => {
+  const doSearch = (q) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
     if (!q.trim()) { setSearchResults([]); return }
     setSearching(true)
-    try {
-      const res = await searchAPI.search(q)
-      setSearchResults(res.data.users || [])
-    } catch {} finally { setSearching(false) }
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await friendsAPI.searchUsers(q)
+        setSearchResults(res.data || [])
+      } catch {
+        setSearchResults([])
+      } finally {
+        setSearching(false)
+      }
+    }, 400)
   }
 
   const sendRequest = async (userId) => {

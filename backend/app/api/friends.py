@@ -47,6 +47,61 @@ async def get_friends(
     return friends
 
 
+@router.get("/search")
+async def search_users(
+    q: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Search users to add as friends, excluding self, existing friends, and pending requests"""
+    if not q.strip():
+        return []
+
+    q_pattern = f"%{q.strip().lower()}%"
+
+    # Get all existing friendship user IDs (both directions)
+    friendships_result = await db.execute(
+        select(Friendship).where(
+            or_(
+                Friendship.requester_id == current_user.id,
+                Friendship.receiver_id == current_user.id
+            )
+        )
+    )
+    friendships = friendships_result.scalars().all()
+
+    excluded_ids = {current_user.id}
+    for f in friendships:
+        excluded_ids.add(f.requester_id)
+        excluded_ids.add(f.receiver_id)
+
+    users_result = await db.execute(
+        select(User).where(
+            and_(
+                ~User.id.in_(excluded_ids),
+                User.is_active == True,
+                or_(
+                    User.username.ilike(q_pattern),
+                    User.full_name.ilike(q_pattern)
+                )
+            )
+        ).limit(10)
+    )
+    users = users_result.scalars().all()
+
+    return [
+        {
+            "id": u.id,
+            "username": u.username,
+            "full_name": u.full_name,
+            "photo_url": u.photo_url,
+            "total_xp": u.total_xp,
+            "level": u.level,
+        }
+        for u in users
+    ]
+
+
 @router.get("/requests")
 async def get_friend_requests(
     current_user: User = Depends(get_current_user),

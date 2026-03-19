@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, Crown, ChevronDown, ChevronUp, Video, ChevronLeft, X } from 'lucide-react'
+import { Plus, Trash2, Crown, ChevronDown, ChevronUp, Video, ChevronLeft, X, Upload, CheckCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { adminAPI } from '../../api'
 import { useAuth } from '../../context/AuthContext'
@@ -17,6 +17,9 @@ export default function AdminModules() {
 
   const [moduleForm, setModuleForm] = useState({ title: '', description: '', emoji: '📚', is_premium: false })
   const [lessonForm, setLessonForm] = useState({ title: '', description: '', content: '', video_url: '', duration_min: 15, xp_reward: 50, is_premium: false })
+  const [videoFile, setVideoFile] = useState(null)
+  const [videoUploading, setVideoUploading] = useState(false)
+  const [videoProgress, setVideoProgress] = useState(0)
 
   useEffect(() => { loadModules() }, [])
 
@@ -54,7 +57,28 @@ export default function AdminModules() {
   const openLessonModal = (module) => {
     setSelectedModule(module)
     setLessonForm({ title: '', description: '', content: '', video_url: '', duration_min: 15, xp_reward: 50, is_premium: false })
+    setVideoFile(null)
+    setVideoProgress(0)
     setShowLessonModal(true)
+  }
+
+  const handleVideoSelect = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setVideoFile(file)
+    setVideoUploading(true)
+    setVideoProgress(0)
+    try {
+      const res = await adminAPI.uploadVideo(file, (evt) => {
+        if (evt.total) setVideoProgress(Math.round((evt.loaded / evt.total) * 100))
+      })
+      setLessonForm(f => ({ ...f, video_url: res.data.url }))
+    } catch {
+      alert('Video yuklab bo\'lmadi')
+      setVideoFile(null)
+    } finally {
+      setVideoUploading(false)
+    }
   }
 
   const createLesson = async () => {
@@ -236,9 +260,45 @@ export default function AdminModules() {
               </div>
               <div>
                 <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <Video size={12} style={{ color: 'var(--primary)' }} /> Video URL (YouTube)
+                  <Video size={12} style={{ color: 'var(--primary)' }} /> Video yuklash
                 </label>
-                <input style={inp} type="url" placeholder="https://www.youtube.com/watch?v=..." value={lessonForm.video_url} onChange={e => setLessonForm({ ...lessonForm, video_url: e.target.value })} />
+                <label style={{ display: 'block', cursor: 'pointer' }}>
+                  <div style={{
+                    border: `2px dashed ${lessonForm.video_url ? 'var(--green)' : 'var(--border)'}`,
+                    borderRadius: 10, padding: '14px', textAlign: 'center',
+                    background: lessonForm.video_url ? 'var(--green-dim)' : 'var(--bg2)',
+                    transition: 'all 0.2s',
+                  }}>
+                    {videoUploading ? (
+                      <div>
+                        <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 8 }}>Yuklanmoqda... {videoProgress}%</p>
+                        <div style={{ height: 4, background: 'var(--border)', borderRadius: 4, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${videoProgress}%`, background: 'var(--primary)', transition: 'width 0.2s' }} />
+                        </div>
+                      </div>
+                    ) : lessonForm.video_url ? (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                        <CheckCircle size={16} style={{ color: 'var(--green)' }} />
+                        <p style={{ fontSize: 13, color: 'var(--green)', fontWeight: 600 }}>{videoFile?.name || 'Video yuklandi'}</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <Upload size={22} style={{ color: 'var(--text3)', margin: '0 auto 6px' }} />
+                        <p style={{ fontSize: 13, color: 'var(--text3)' }}>Video faylni tanlang</p>
+                        <p style={{ fontSize: 11, color: 'var(--text3)', opacity: 0.7, marginTop: 3 }}>MP4, WebM, MOV, AVI</p>
+                      </div>
+                    )}
+                  </div>
+                  <input type="file" accept="video/*" onChange={handleVideoSelect} style={{ display: 'none' }} disabled={videoUploading} />
+                </label>
+                {lessonForm.video_url && (
+                  <button
+                    onClick={() => { setVideoFile(null); setLessonForm(f => ({ ...f, video_url: '' })) }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--red)', marginTop: 4 }}
+                  >
+                    × Videoni o'chirish
+                  </button>
+                )}
               </div>
               <div>
                 <label className="input-label">Dars matni</label>

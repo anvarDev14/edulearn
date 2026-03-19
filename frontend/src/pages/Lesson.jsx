@@ -26,6 +26,8 @@ export default function Lesson() {
     }
   }
 
+  const isYouTube = (url) => url && (url.includes('youtube.com') || url.includes('youtu.be'))
+
   const getEmbedUrl = (url) => {
     if (!url) return null
     if (url.includes('youtube.com/watch')) {
@@ -36,8 +38,14 @@ export default function Lesson() {
       const videoId = url.split('youtu.be/')[1]?.split('?')[0]
       return `https://www.youtube.com/embed/${videoId}`
     }
-    if (url.includes('youtube.com/embed')) return url
     return url
+  }
+
+  const getLocalVideoUrl = (url) => {
+    if (!url) return null
+    if (url.startsWith('http')) return url
+    const base = import.meta.env.VITE_API_URL?.replace('/api', '') || ''
+    return `${base}/${url}`
   }
 
   const completeLesson = async () => {
@@ -65,8 +73,6 @@ export default function Lesson() {
     )
   }
 
-  const embedUrl = getEmbedUrl(lesson.video_url)
-
   return (
     <div style={{ paddingBottom: 32 }}>
       {/* Header */}
@@ -93,20 +99,30 @@ export default function Lesson() {
       </div>
 
       {/* Video */}
-      {embedUrl ? (
-        <div style={{ position: 'relative', paddingBottom: '56.25%', background: '#000' }}>
-          <iframe
-            src={embedUrl}
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
-            allowFullScreen
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            title={lesson.title}
-          />
-        </div>
+      {lesson.video_url ? (
+        isYouTube(lesson.video_url) ? (
+          <div style={{ position: 'relative', paddingBottom: '56.25%', background: '#000' }}>
+            <iframe
+              src={getEmbedUrl(lesson.video_url)}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              title={lesson.title}
+            />
+          </div>
+        ) : (
+          <div style={{ background: '#000' }}>
+            <video
+              src={getLocalVideoUrl(lesson.video_url)}
+              controls
+              style={{ width: '100%', maxHeight: 320, display: 'block' }}
+            />
+          </div>
+        )
       ) : (
         <div style={{
           position: 'relative', paddingBottom: '56.25%',
-          background: 'linear-gradient(135deg, var(--bg2), var(--surface3))'
+          background: 'linear-gradient(135deg, var(--bg2), var(--surface))'
         }}>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
             <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--primary-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

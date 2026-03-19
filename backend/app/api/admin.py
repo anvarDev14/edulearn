@@ -1,12 +1,14 @@
 """
 Admin API
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timedelta
+import uuid
+import os
 
 from app.database import get_db
 from app.models.user import User
@@ -294,6 +296,29 @@ async def delete_module(
     await db.commit()
     
     return {"success": True}
+
+
+# Video upload for lessons
+@router.post("/lessons/upload-video")
+async def upload_lesson_video(
+    file: UploadFile = File(...),
+    admin: User = Depends(get_current_admin)
+):
+    """Dars videosini yuklash"""
+    allowed = {"mp4", "webm", "mov", "avi", "mkv"}
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    if ext not in allowed:
+        raise HTTPException(400, "Faqat video fayllar qabul qilinadi (mp4, webm, mov, avi, mkv)")
+
+    os.makedirs("uploads/videos", exist_ok=True)
+    filename = f"{uuid.uuid4()}.{ext}"
+    path = f"uploads/videos/{filename}"
+
+    content = await file.read()
+    with open(path, "wb") as f:
+        f.write(content)
+
+    return {"url": f"uploads/videos/{filename}"}
 
 
 # Lesson CRUD

@@ -86,6 +86,7 @@ export const newsAPI = {
 export const friendsAPI = {
   getFriends: () => api.get('/friends'),
   getRequests: () => api.get('/friends/requests'),
+  searchUsers: (q) => api.get(`/friends/search?q=${encodeURIComponent(q)}`),
   sendRequest: (userId) => api.post(`/friends/request/${userId}`),
   acceptRequest: (friendshipId) => api.post(`/friends/accept/${friendshipId}`),
   removeFriend: (friendshipId) => api.delete(`/friends/${friendshipId}`)
@@ -136,6 +137,14 @@ export const adminAPI = {
   createModule: (data) => api.post('/admin/modules', data),
   deleteModule: (id) => api.delete(`/admin/modules/${id}`),
   createLesson: (data) => api.post('/admin/lessons', data),
+  uploadVideo: (file, onProgress) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post('/admin/lessons/upload-video', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: onProgress,
+    })
+  },
   deleteLesson: (id) => api.delete(`/admin/lessons/${id}`),
   getQuizzes: () => api.get('/admin/quizzes'),
   createQuiz: (data) => api.post('/admin/quizzes', data),
