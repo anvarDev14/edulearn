@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { Send, Brain, MessageCircle, Lightbulb } from 'lucide-react'
+import { Send, Brain, MessageCircle, Lightbulb, Crown } from 'lucide-react'
 import { aiAPI } from '../api'
+import { useNavigate } from 'react-router-dom'
 
 export default function AIChat() {
   const [messages, setMessages] = useState([])
@@ -8,14 +9,22 @@ export default function AIChat() {
   const [loading, setLoading] = useState(false)
   const [mode, setMode] = useState('chat')
   const [explainText, setExplainText] = useState('')
+  const [isPremium, setIsPremium] = useState(null)
   const bottomRef = useRef()
+  const navigate = useNavigate()
 
   useEffect(() => {
     aiAPI.getHistory().then(r => {
+      setIsPremium(true)
       if (r.data?.length) setMessages(r.data)
       else setMessages([{ role: 'assistant', content: "Salom! 👋 Men EduLearn AI yordamchisiman. O'qish, darslar yoki mavzular haqida savollaringizni bering, javob beraman!" }])
-    }).catch(() => {
-      setMessages([{ role: 'assistant', content: "Salom! 👋 Men EduLearn AI yordamchisiman. O'qish, darslar yoki mavzular haqida savollaringizni bering, javob beraman!" }])
+    }).catch(e => {
+      if (e.response?.status === 403) {
+        setIsPremium(false)
+      } else {
+        setIsPremium(true)
+        setMessages([{ role: 'assistant', content: "Salom! 👋 Men EduLearn AI yordamchisiman. O'qish, darslar yoki mavzular haqida savollaringizni bering, javob beraman!" }])
+      }
     })
   }, [])
 
@@ -63,6 +72,27 @@ export default function AIChat() {
   const handleKey = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
   }
+
+  if (isPremium === null) return <div className="loader-full"><div className="spinner" /></div>
+
+  if (!isPremium) return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', paddingBottom: 'var(--nav-h)', padding: '32px 20px', textAlign: 'center' }}>
+      <div style={{ width: 80, height: 80, borderRadius: 24, background: 'linear-gradient(135deg, #f59e0b, #d97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, boxShadow: '0 8px 24px rgba(245,158,11,0.3)' }}>
+        <Crown size={36} color="white" />
+      </div>
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>AI Yordamchi — Premium</h2>
+      <p style={{ fontSize: 14, color: 'var(--text2)', lineHeight: 1.6, maxWidth: 300, marginBottom: 28 }}>
+        AI yordamchidan foydalanish uchun Premium obuna kerak. Cheksiz savollar bering, darslarni tushuntiring!
+      </p>
+      <button
+        className="btn btn-primary"
+        style={{ width: '100%', maxWidth: 280, padding: '14px 0', fontSize: 15, fontWeight: 700, borderRadius: 14 }}
+        onClick={() => navigate('/settings')}
+      >
+        👑 Premium olish
+      </button>
+    </div>
+  )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', paddingBottom: 'var(--nav-h)', background: 'var(--bg)' }}>

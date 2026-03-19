@@ -173,7 +173,7 @@ export default function Lesson() {
                 onClick={() => navigate(`/quiz/${lesson.quiz_id}`)}
                 className="btn btn-full btn-lg btn-gold"
               >
-                📝 Quizni boshlash
+                👑 Quizni boshlash
               </button>
             )}
           </div>

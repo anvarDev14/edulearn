@@ -13,7 +13,7 @@ from app.database import get_db
 from app.models.user import User
 from app.models.ai_chat import AIChatHistory
 from app.models.lesson import Lesson
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_premium_user
 from app.config import settings
 
 router = APIRouter()
@@ -72,7 +72,7 @@ async def call_claude(messages: list, system: str = "") -> str:
 @router.post("/chat")
 async def ai_chat(
     data: ChatRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_premium_user),
     db: AsyncSession = Depends(get_db)
 ):
     """General AI chat for learning questions"""
@@ -122,7 +122,7 @@ async def ai_chat(
 @router.post("/explain")
 async def ai_explain(
     data: ExplainRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_premium_user),
     db: AsyncSession = Depends(get_db)
 ):
     """AI explains selected text in simple terms"""
@@ -147,7 +147,7 @@ async def ai_explain(
 @router.get("/history")
 async def get_chat_history(
     lesson_id: Optional[int] = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_premium_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Get AI chat history"""

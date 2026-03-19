@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Clock, Trophy, XCircle } from 'lucide-react'
+import { ArrowLeft, Clock, Trophy, XCircle, Crown } from 'lucide-react'
 import { quizAPI } from '../api'
 import Loader from '../components/common/Loader'
 
@@ -16,6 +16,7 @@ export default function Quiz() {
   const [submitted, setSubmitted] = useState(false)
   const [result, setResult] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [premiumRequired, setPremiumRequired] = useState(false)
 
   useEffect(() => {
     loadQuiz()
@@ -42,8 +43,11 @@ export default function Quiz() {
       setQuiz(res.data)
       setTimeLeft(res.data.time_limit || 120)
     } catch (error) {
-      console.error(error)
-      navigate(-1)
+      if (error.response?.status === 403) {
+        setPremiumRequired(true)
+      } else {
+        navigate(-1)
+      }
     } finally {
       setLoading(false)
     }
@@ -75,6 +79,31 @@ export default function Quiz() {
   }
 
   if (loading) return <Loader />
+
+  if (premiumRequired) return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', paddingBottom: 'var(--nav-h)', padding: '32px 20px', textAlign: 'center', background: 'var(--bg)' }}>
+      <div style={{ width: 80, height: 80, borderRadius: 24, background: 'linear-gradient(135deg, #f59e0b, #d97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, boxShadow: '0 8px 24px rgba(245,158,11,0.3)' }}>
+        <Crown size={36} color="white" />
+      </div>
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>Quiz — Premium</h2>
+      <p style={{ fontSize: 14, color: 'var(--text2)', lineHeight: 1.6, maxWidth: 300, marginBottom: 28 }}>
+        Quizdan o'tish va XP yig'ish uchun Premium obuna kerak. Bilimingizni sinab ko'ring!
+      </p>
+      <button
+        style={{ width: '100%', maxWidth: 280, padding: '14px 0', fontSize: 15, fontWeight: 700, borderRadius: 14, background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', marginBottom: 12 }}
+        onClick={() => navigate('/settings')}
+      >
+        👑 Premium olish
+      </button>
+      <button
+        style={{ width: '100%', maxWidth: 280, padding: '12px 0', fontSize: 14, fontWeight: 600, borderRadius: 14, background: 'var(--bg2)', color: 'var(--text2)', border: '1px solid var(--border)', cursor: 'pointer' }}
+        onClick={() => navigate(-1)}
+      >
+        ← Orqaga
+      </button>
+    </div>
+  )
+
   if (!quiz) return <div className="p-4 text-center text-red-500">Quiz topilmadi</div>
 
   const questions = quiz.questions || []

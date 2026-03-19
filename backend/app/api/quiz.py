@@ -14,7 +14,7 @@ from app.models.user import User
 from app.models.quiz import Quiz, Question
 from app.models.progress import UserProgress
 from app.models.xp_history import XPHistory
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_premium_user
 from app.core.xp_engine import XPEngine
 from app.core.level_engine import LevelEngine
 
@@ -35,7 +35,7 @@ class QuizSubmit(BaseModel):
 @router.get("/{quiz_id}")
 async def get_quiz(
     quiz_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_premium_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Quiz olish"""
@@ -45,16 +45,9 @@ async def get_quiz(
         .where(Quiz.id == quiz_id)
     )
     quiz = result.scalar_one_or_none()
-    
+
     if not quiz:
         raise HTTPException(status_code=404, detail="Quiz topilmadi")
-    
-    # Check premium
-    if quiz.lesson.is_premium and not current_user.is_premium and not current_user.is_admin:
-        raise HTTPException(
-            status_code=403,
-            detail={"error": "premium_required", "message": "Bu quiz faqat Premium uchun"}
-        )
     
     questions = []
     for q in quiz.questions:
@@ -82,7 +75,7 @@ async def get_quiz(
 async def submit_quiz(
     quiz_id: int,
     data: QuizSubmit,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_premium_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Quiz javoblarini yuborish"""
