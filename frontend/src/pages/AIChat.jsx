@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
+import { Send, Brain, MessageCircle, Lightbulb } from 'lucide-react'
 import { aiAPI } from '../api'
 
 export default function AIChat() {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [mode, setMode] = useState('chat') // chat | explain
+  const [mode, setMode] = useState('chat')
   const [explainText, setExplainText] = useState('')
   const bottomRef = useRef()
 
@@ -34,7 +35,7 @@ export default function AIChat() {
       const res = await aiAPI.chat(text, history.slice(0, -1))
       setMessages([...newMessages, { role: 'assistant', content: res.data.response }])
     } catch {
-      setMessages([...newMessages, { role: 'assistant', content: '⚠️ Xato yuz berdi. Qayta urinib ko\'ring.' }])
+      setMessages([...newMessages, { role: 'assistant', content: "⚠️ Xato yuz berdi. Qayta urinib ko'ring." }])
     } finally {
       setLoading(false)
     }
@@ -65,17 +66,52 @@ export default function AIChat() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', paddingBottom: 'var(--nav-h)', background: 'var(--bg)' }}>
+
       {/* Header */}
-      <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', background: 'rgba(10,10,20,0.95)', backdropFilter: 'blur(20px)', position: 'sticky', top: 0, zIndex: 10 }}>
+      <div style={{
+        padding: '14px 16px', borderBottom: '1px solid var(--border)',
+        background: 'var(--surface)', backdropFilter: 'blur(20px)',
+        position: 'sticky', top: 0, zIndex: 10,
+      }}>
         <div style={{ maxWidth: 800, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--primary-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🧠</div>
-          <div>
-            <p style={{ fontWeight: 700, fontSize: 16 }}>AI Yordamchi</p>
+          <div style={{
+            width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+            background: 'var(--primary-dim)', border: '1.5px solid rgba(123,79,58,0.18)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Brain size={20} style={{ color: 'var(--primary)' }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>AI Yordamchi</p>
             <p style={{ fontSize: 12, color: 'var(--text3)' }}>Ta'lim bo'yicha savol-javob</p>
           </div>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
-            <button className={`btn btn-sm ${mode === 'chat' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setMode('chat')}>💬 Chat</button>
-            <button className={`btn btn-sm ${mode === 'explain' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setMode('explain')}>🧠 Tushuntir</button>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              onClick={() => setMode('chat')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px',
+                borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                background: mode === 'chat' ? 'var(--primary)' : 'var(--bg2)',
+                color: mode === 'chat' ? 'white' : 'var(--text2)',
+                border: `1px solid ${mode === 'chat' ? 'transparent' : 'var(--border)'}`,
+                transition: 'all 0.18s',
+              }}
+            >
+              <MessageCircle size={13} /> Chat
+            </button>
+            <button
+              onClick={() => setMode('explain')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px',
+                borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                background: mode === 'explain' ? 'var(--primary)' : 'var(--bg2)',
+                color: mode === 'explain' ? 'white' : 'var(--text2)',
+                border: `1px solid ${mode === 'explain' ? 'transparent' : 'var(--border)'}`,
+                transition: 'all 0.18s',
+              }}
+            >
+              <Lightbulb size={13} /> Tushuntir
+            </button>
           </div>
         </div>
       </div>
@@ -85,22 +121,60 @@ export default function AIChat() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {messages.map((msg, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, maxWidth: '85%', flexDirection: msg.role === 'user' ? 'row-reverse' : 'row' }}>
-                <div style={{ width: 28, height: 28, borderRadius: '50%', background: msg.role === 'user' ? 'var(--primary)' : 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>
-                  {msg.role === 'user' ? '👤' : '🧠'}
+              <div style={{
+                display: 'flex', alignItems: 'flex-end', gap: 8, maxWidth: '85%',
+                flexDirection: msg.role === 'user' ? 'row-reverse' : 'row',
+              }}>
+                {/* Avatar */}
+                <div style={{
+                  width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: msg.role === 'user' ? 'var(--primary)' : 'var(--primary-dim)',
+                  border: msg.role === 'assistant' ? '1.5px solid rgba(123,79,58,0.2)' : 'none',
+                }}>
+                  {msg.role === 'user'
+                    ? <span style={{ fontSize: 13 }}>👤</span>
+                    : <Brain size={14} style={{ color: 'var(--primary)' }} />
+                  }
                 </div>
-                <div className={`chat-bubble ${msg.role}`} style={{ whiteSpace: 'pre-wrap' }}>
+
+                {/* Bubble */}
+                <div style={{
+                  padding: '10px 14px', borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                  background: msg.role === 'user' ? 'var(--primary)' : 'var(--surface)',
+                  color: msg.role === 'user' ? 'white' : 'var(--text)',
+                  border: msg.role === 'assistant' ? '1px solid var(--border)' : 'none',
+                  fontSize: 14, lineHeight: 1.55, whiteSpace: 'pre-wrap',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                }}>
                   {msg.content}
                 </div>
               </div>
             </div>
           ))}
+
+          {/* Loading dots */}
           {loading && (
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
-              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🧠</div>
-              <div className="chat-bubble assistant" style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '12px 16px' }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%',
+                background: 'var(--primary-dim)', border: '1.5px solid rgba(123,79,58,0.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Brain size={14} style={{ color: 'var(--primary)' }} />
+              </div>
+              <div style={{
+                padding: '12px 16px', borderRadius: '16px 16px 16px 4px',
+                background: 'var(--surface)', border: '1px solid var(--border)',
+                display: 'flex', gap: 4, alignItems: 'center',
+              }}>
                 {[0, 1, 2].map(i => (
-                  <span key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--text3)', display: 'inline-block', animation: 'pulse 1.2s infinite', animationDelay: `${i * 0.2}s` }} />
+                  <span key={i} style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: 'var(--text3)', display: 'inline-block',
+                    animation: 'pulse 1.2s infinite',
+                    animationDelay: `${i * 0.2}s`,
+                  }} />
                 ))}
               </div>
             </div>
@@ -110,42 +184,73 @@ export default function AIChat() {
       </div>
 
       {/* Input */}
-      <div style={{ borderTop: '1px solid var(--border)', background: 'rgba(10,10,20,0.95)', backdropFilter: 'blur(20px)', padding: '12px 16px', paddingBottom: `calc(12px + env(safe-area-inset-bottom))` }}>
+      <div style={{
+        borderTop: '1px solid var(--border)', background: 'var(--surface)',
+        padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))',
+      }}>
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
           {mode === 'explain' ? (
             <div>
-              <p style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 8 }}>🧠 Tushuntirish uchun matn kiriting:</p>
-              <div style={{ display: 'flex', gap: 10 }}>
+              <p style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Lightbulb size={12} /> Tushuntirish uchun matn kiriting:
+              </p>
+              <div style={{ display: 'flex', gap: 8 }}>
                 <textarea
                   value={explainText}
                   onChange={e => setExplainText(e.target.value)}
                   placeholder="Tushuntirib berishini istagan matnni yozing..."
-                  className="input"
-                  style={{ resize: 'none', height: 80, borderRadius: 14 }}
+                  style={{
+                    flex: 1, padding: '10px 14px', resize: 'none', height: 80,
+                    background: 'var(--bg2)', border: '1.5px solid var(--border)',
+                    borderRadius: 14, color: 'var(--text)', fontSize: 14,
+                    outline: 'none', fontFamily: 'var(--font)',
+                  }}
                 />
-                <button className="btn btn-primary" onClick={sendExplain} disabled={loading || !explainText.trim()}>
-                  🧠
+                <button
+                  onClick={sendExplain}
+                  disabled={loading || !explainText.trim()}
+                  style={{
+                    width: 46, borderRadius: 14, border: 'none', cursor: 'pointer',
+                    background: 'var(--primary)', color: 'white', flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    opacity: (loading || !explainText.trim()) ? 0.5 : 1,
+                  }}
+                >
+                  <Brain size={18} />
                 </button>
               </div>
             </div>
           ) : (
-            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
               <textarea
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKey}
                 placeholder="Savolingizni yozing..."
-                className="input"
                 rows={1}
-                style={{ resize: 'none', borderRadius: 14, maxHeight: 120, overflow: 'auto', paddingTop: 12, paddingBottom: 12, lineHeight: 1.5 }}
+                style={{
+                  flex: 1, padding: '11px 14px', resize: 'none',
+                  background: 'var(--bg2)', border: '1.5px solid var(--border)',
+                  borderRadius: 14, color: 'var(--text)', fontSize: 14,
+                  outline: 'none', fontFamily: 'var(--font)',
+                  maxHeight: 120, overflow: 'auto', lineHeight: 1.5,
+                }}
               />
               <button
-                className="btn btn-primary"
                 onClick={sendMessage}
                 disabled={loading || !input.trim()}
-                style={{ borderRadius: 14, height: 46, width: 46, padding: 0, flexShrink: 0 }}
+                style={{
+                  width: 46, height: 46, borderRadius: 14, border: 'none', cursor: 'pointer',
+                  background: 'var(--primary)', color: 'white', flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  opacity: (loading || !input.trim()) ? 0.5 : 1,
+                  transition: 'opacity 0.18s',
+                }}
               >
-                {loading ? <div className="spinner" style={{ width: 16, height: 16 }} /> : '→'}
+                {loading
+                  ? <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                  : <Send size={17} />
+                }
               </button>
             </div>
           )}

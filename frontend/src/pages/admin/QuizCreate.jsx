@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Plus, Check, X } from 'lucide-react'
+import { ChevronLeft, Plus, Check } from 'lucide-react'
 import { adminAPI } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 import Loader from '../../components/common/Loader'
@@ -11,7 +11,7 @@ export default function QuizCreate() {
   const [modules, setModules] = useState([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
-  const [step, setStep] = useState(1) // 1: quiz info, 2: add questions
+  const [step, setStep] = useState(1)
   const [createdQuiz, setCreatedQuiz] = useState(null)
   const [questions, setQuestions] = useState([])
 
@@ -28,9 +28,7 @@ export default function QuizCreate() {
     correct_index: 0
   })
 
-  useEffect(() => {
-    loadModules()
-  }, [])
+  useEffect(() => { loadModules() }, [])
 
   const loadModules = async () => {
     try {
@@ -46,18 +44,12 @@ export default function QuizCreate() {
   const allLessons = []
   modules.forEach(m => {
     m.lessons?.forEach(l => {
-      allLessons.push({
-        ...l,
-        moduleEmoji: m.emoji,
-        moduleTitle: m.title
-      })
+      allLessons.push({ ...l, moduleEmoji: m.emoji, moduleTitle: m.title })
     })
   })
 
   const createQuiz = async () => {
-    if (!quizForm.lesson_id || !quizForm.title) {
-      return alert('Dars va quiz nomini kiriting')
-    }
+    if (!quizForm.lesson_id || !quizForm.title) return alert('Dars va quiz nomini kiriting')
     setCreating(true)
     try {
       const res = await adminAPI.createQuiz(quizForm)
@@ -77,67 +69,70 @@ export default function QuizCreate() {
     try {
       await adminAPI.addQuestion(createdQuiz.id, questionForm)
       setQuestions([...questions, { ...questionForm }])
-      setQuestionForm({
-        question: '',
-        options: ['', '', '', ''],
-        correct_index: 0
-      })
+      setQuestionForm({ question: '', options: ['', '', '', ''], correct_index: 0 })
     } catch (error) {
       alert('Xatolik: ' + (error.response?.data?.detail || 'Server xatosi'))
     }
   }
 
   const finish = () => {
-    if (questions.length === 0) {
-      return alert('Kamida bitta savol qo\'shing')
-    }
+    if (questions.length === 0) return alert("Kamida bitta savol qo'shing")
     navigate('/admin/quizzes')
   }
 
-  if (!user?.is_admin) {
-    return (
-      <div className="p-4 text-center">
-        <p className="text-red-500 text-xl">Ruxsat yo'q</p>
-      </div>
-    )
-  }
+  if (!user?.is_admin) return (
+    <div className="page" style={{ textAlign: 'center' }}>
+      <p style={{ color: 'var(--red)', fontSize: 18 }}>🚫 Ruxsat yo'q</p>
+    </div>
+  )
 
   if (loading) return <Loader />
 
+  const inp = {
+    width: '100%', padding: '10px 12px',
+    background: 'var(--bg2)', border: '1.5px solid var(--border)',
+    borderRadius: 10, color: 'var(--text)', fontSize: 14,
+    outline: 'none', fontFamily: 'var(--font)',
+  }
+
   return (
-    <div className="p-4 pb-24">
+    <div className="page">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
         <button
           onClick={() => navigate('/admin/quizzes')}
-          className="p-2 bg-slate-800 rounded-xl"
+          style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
         >
-          <ArrowLeft size={20} />
+          <ChevronLeft size={18} style={{ color: 'var(--text)' }} />
         </button>
         <div>
-          <h1 className="text-xl font-bold text-white">Yangi Quiz</h1>
-          <p className="text-slate-400 text-sm">
-            {step === 1 ? 'Quiz ma\'lumotlari' : `Savollar (${questions.length} ta)`}
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>Yangi Quiz</h1>
+          <p style={{ fontSize: 13, color: 'var(--text3)' }}>
+            {step === 1 ? "Quiz ma'lumotlari" : `Savollar (${questions.length} ta)`}
           </p>
         </div>
       </div>
 
-      {/* Progress */}
-      <div className="flex gap-2 mb-6">
-        <div className={`flex-1 h-1 rounded-full ${step >= 1 ? 'bg-blue-500' : 'bg-slate-700'}`} />
-        <div className={`flex-1 h-1 rounded-full ${step >= 2 ? 'bg-blue-500' : 'bg-slate-700'}`} />
+      {/* Progress bar */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 20 }}>
+        {[1, 2].map(s => (
+          <div key={s} style={{
+            flex: 1, height: 4, borderRadius: 4,
+            background: step >= s ? 'var(--primary)' : 'var(--border)',
+            transition: 'background 0.3s',
+          }} />
+        ))}
       </div>
 
       {step === 1 ? (
-        /* Step 1: Quiz Info */
-        <div className="bg-slate-800 rounded-2xl p-5">
-          <div className="space-y-4">
+        <div className="card">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
-              <label className="text-slate-400 text-sm block mb-2">Dars tanlang *</label>
+              <label className="input-label">Dars tanlang *</label>
               <select
                 value={quizForm.lesson_id}
                 onChange={e => setQuizForm({ ...quizForm, lesson_id: e.target.value })}
-                className="w-full bg-slate-700 rounded-xl p-3 text-white"
+                style={{ ...inp, cursor: 'pointer' }}
               >
                 <option value="">Tanlang...</option>
                 {allLessons.map(l => (
@@ -149,33 +144,30 @@ export default function QuizCreate() {
             </div>
 
             <div>
-              <label className="text-slate-400 text-sm block mb-2">Quiz nomi *</label>
+              <label className="input-label">Quiz nomi *</label>
               <input
-                type="text"
+                style={inp}
                 placeholder="Masalan: Algebra test"
                 value={quizForm.title}
                 onChange={e => setQuizForm({ ...quizForm, title: e.target.value })}
-                className="w-full bg-slate-700 rounded-xl p-3 text-white"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div>
-                <label className="text-slate-400 text-sm block mb-2">Vaqt (soniya)</label>
+                <label className="input-label">Vaqt (soniya)</label>
                 <input
-                  type="number"
+                  style={inp} type="number"
                   value={quizForm.time_limit}
                   onChange={e => setQuizForm({ ...quizForm, time_limit: parseInt(e.target.value) || 120 })}
-                  className="w-full bg-slate-700 rounded-xl p-3 text-white"
                 />
               </div>
               <div>
-                <label className="text-slate-400 text-sm block mb-2">O'tish bali (%)</label>
+                <label className="input-label">O'tish bali (%)</label>
                 <input
-                  type="number"
+                  style={inp} type="number"
                   value={quizForm.passing_score}
                   onChange={e => setQuizForm({ ...quizForm, passing_score: parseInt(e.target.value) || 70 })}
-                  className="w-full bg-slate-700 rounded-xl p-3 text-white"
                 />
               </div>
             </div>
@@ -184,94 +176,102 @@ export default function QuizCreate() {
           <button
             onClick={createQuiz}
             disabled={creating}
-            className="w-full mt-6 py-4 bg-blue-500 rounded-xl font-bold text-white disabled:opacity-50"
+            className="btn btn-primary btn-full btn-lg"
+            style={{ marginTop: 20, opacity: creating ? 0.6 : 1 }}
           >
-            {creating ? 'Yaratilmoqda...' : 'Davom etish'}
+            {creating ? 'Yaratilmoqda...' : 'Davom etish →'}
           </button>
         </div>
       ) : (
-        /* Step 2: Add Questions */
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Added questions */}
           {questions.length > 0 && (
-            <div className="bg-slate-800 rounded-2xl p-4 space-y-2">
-              <p className="text-slate-400 text-sm mb-2">Qo'shilgan savollar:</p>
-              {questions.map((q, idx) => (
-                <div key={idx} className="bg-slate-700/50 rounded-lg p-3">
-                  <p className="text-white text-sm">
-                    <span className="text-blue-400 font-bold mr-2">{idx + 1}.</span>
-                    {q.question}
-                  </p>
-                </div>
-              ))}
+            <div className="card" style={{ padding: '14px' }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 10 }}>
+                Qo'shilgan savollar
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {questions.map((q, idx) => (
+                  <div key={idx} style={{ background: 'var(--bg2)', borderRadius: 8, padding: '8px 12px', border: '1px solid var(--border)' }}>
+                    <p style={{ fontSize: 13, color: 'var(--text)' }}>
+                      <span style={{ color: 'var(--primary)', fontWeight: 700, marginRight: 6 }}>{idx + 1}.</span>
+                      {q.question}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Add new question */}
-          <div className="bg-slate-800 rounded-2xl p-5">
-            <h3 className="font-bold text-white mb-4">Yangi savol</h3>
+          {/* New question form */}
+          <div className="card">
+            <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 14 }}>Yangi savol</p>
 
-            <div className="space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
-                <label className="text-slate-400 text-sm block mb-2">Savol *</label>
+                <label className="input-label">Savol *</label>
                 <textarea
+                  style={{ ...inp, minHeight: 72, resize: 'vertical' }}
                   placeholder="Savolni kiriting..."
                   value={questionForm.question}
                   onChange={e => setQuestionForm({ ...questionForm, question: e.target.value })}
-                  className="w-full bg-slate-700 rounded-xl p-3 text-white"
-                  rows={2}
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 text-sm block mb-2">Javob variantlari</label>
-                {questionForm.options.map((opt, idx) => (
-                  <div key={idx} className="flex items-center gap-2 mb-2">
-                    <button
-                      type="button"
-                      onClick={() => setQuestionForm({ ...questionForm, correct_index: idx })}
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center transition ${
-                        questionForm.correct_index === idx
-                          ? 'bg-green-500 text-white'
-                          : 'bg-slate-600 text-slate-400'
-                      }`}
-                    >
-                      {questionForm.correct_index === idx ? <Check size={16} /> : String.fromCharCode(65 + idx)}
-                    </button>
-                    <input
-                      type="text"
-                      placeholder={`Variant ${String.fromCharCode(65 + idx)}`}
-                      value={opt}
-                      onChange={e => {
-                        const newOpts = [...questionForm.options]
-                        newOpts[idx] = e.target.value
-                        setQuestionForm({ ...questionForm, options: newOpts })
-                      }}
-                      className="flex-1 bg-slate-700 rounded-lg p-2 text-white"
-                    />
-                  </div>
-                ))}
-                <p className="text-green-400 text-xs mt-2">
-                  To'g'ri javob: {String.fromCharCode(65 + questionForm.correct_index)}
+                <label className="input-label">Javob variantlari</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {questionForm.options.map((opt, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <button
+                        type="button"
+                        onClick={() => setQuestionForm({ ...questionForm, correct_index: idx })}
+                        style={{
+                          width: 32, height: 32, borderRadius: 8, flexShrink: 0, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: questionForm.correct_index === idx ? 'var(--green)' : 'var(--bg2)',
+                          border: `1.5px solid ${questionForm.correct_index === idx ? 'var(--green)' : 'var(--border)'}`,
+                          color: questionForm.correct_index === idx ? 'white' : 'var(--text3)',
+                          fontWeight: 700, fontSize: 13, transition: 'all 0.18s',
+                        }}
+                      >
+                        {questionForm.correct_index === idx
+                          ? <Check size={15} />
+                          : String.fromCharCode(65 + idx)
+                        }
+                      </button>
+                      <input
+                        style={{ ...inp }}
+                        placeholder={`Variant ${String.fromCharCode(65 + idx)}`}
+                        value={opt}
+                        onChange={e => {
+                          const newOpts = [...questionForm.options]
+                          newOpts[idx] = e.target.value
+                          setQuestionForm({ ...questionForm, options: newOpts })
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p style={{ fontSize: 12, color: 'var(--green)', marginTop: 6 }}>
+                  ✓ To'g'ri javob: {String.fromCharCode(65 + questionForm.correct_index)}
                 </p>
               </div>
             </div>
 
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={addQuestion}
-                className="flex-1 py-3 bg-green-500 rounded-xl font-bold text-white flex items-center justify-center gap-2"
-              >
-                <Plus size={18} />
-                Qo'shish
-              </button>
-            </div>
+            <button
+              onClick={addQuestion}
+              className="btn btn-full"
+              style={{ marginTop: 16, background: 'var(--green)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+            >
+              <Plus size={16} /> Savolni qo'shish
+            </button>
           </div>
 
-          {/* Finish button */}
+          {/* Finish */}
           <button
             onClick={finish}
-            className="w-full py-4 bg-blue-500 rounded-xl font-bold text-white"
+            className="btn btn-primary btn-full btn-lg"
           >
             Tugatish ({questions.length} ta savol)
           </button>
