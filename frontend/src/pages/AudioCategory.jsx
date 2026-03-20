@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, Crown, Clock, Headphones } from 'lucide-react'
-import { audioAPI } from '../api'
+import { audioAPI, getMediaUrl } from '../api'
 import { useAuth } from '../context/AuthContext'
 
 export default function AudioCategory() {
@@ -68,7 +68,7 @@ export default function AudioCategory() {
                   flexShrink: 0, overflow: 'hidden'
                 }}>
                   {audio.cover_url
-                    ? <img src={audio.cover_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ? <img src={getMediaUrl(audio.cover_url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     : <span style={{ fontWeight: 700, color: 'var(--primary)', fontSize: 16 }}>{idx + 1}</span>
                   }
                 </div>

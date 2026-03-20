@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Play, Pause, SkipBack, SkipForward, Volume2, Crown } from 'lucide-react'
-import { audioAPI } from '../api'
+import { audioAPI, getMediaUrl } from '../api'
 
 export default function AudioPlayer() {
   const { audioId } = useParams()
@@ -93,7 +93,7 @@ export default function AudioPlayer() {
         boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
       }}>
         {audio.cover_url
-          ? <img src={audio.cover_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ? <img src={getMediaUrl(audio.cover_url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           : <span style={{ fontSize: 80 }}>🎧</span>
         }
       </div>
@@ -110,7 +110,7 @@ export default function AudioPlayer() {
       {/* Hidden audio element */}
       <audio
         ref={audioRef}
-        src={audio.audio_url}
+        src={getMediaUrl(audio.audio_url)}
         onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
         onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
         onEnded={() => setPlaying(false)}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Pin, Eye, Play, Image as ImageIcon, ChevronRight } from 'lucide-react'
-import { newsAPI } from '../api'
+import { newsAPI, getMediaUrl } from '../api'
 import Loader from '../components/common/Loader'
 
 export default function News() {
@@ -51,7 +51,7 @@ export default function News() {
           >
             {item.media_url && item.media_type === 'image' && (
               <img
-                src={item.media_url}
+                src={getMediaUrl(item.media_url)}
                 alt={item.title}
                 style={{ width: '100%', height: 160, objectFit: 'cover', display: 'block' }}
               />

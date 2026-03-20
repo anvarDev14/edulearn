@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { BookOpen, Crown, Download, ExternalLink } from 'lucide-react'
-import { booksAPI } from '../api'
+import { booksAPI, getMediaUrl } from '../api'
 
 export default function BookDetail() {
   const { bookId } = useParams()
@@ -38,6 +38,8 @@ export default function BookDetail() {
 
   if (!book) return null
 
+  const fileUrl = getMediaUrl(book.file_url)
+  const coverUrl = getMediaUrl(book.cover_url)
   const isPdf = book.file_url?.toLowerCase().includes('.pdf')
 
   return (
@@ -50,12 +52,12 @@ export default function BookDetail() {
       <div style={{
         width: 160, height: 240, borderRadius: 16,
         overflow: 'hidden', margin: '0 auto 24px',
-        background: book.cover_url ? 'transparent' : 'var(--accent-dim)',
+        background: coverUrl ? 'transparent' : 'var(--accent-dim)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
       }}>
-        {book.cover_url
-          ? <img src={book.cover_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        {coverUrl
+          ? <img src={coverUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           : <span style={{ fontSize: 64 }}>📖</span>
         }
       </div>
@@ -86,11 +88,11 @@ export default function BookDetail() {
       )}
 
       {/* Actions */}
-      {book.file_url && (
+      {fileUrl && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {isPdf ? (
             <a
-              href={book.file_url}
+              href={fileUrl}
               target="_blank"
               rel="noreferrer"
               className="btn btn-primary"
@@ -101,7 +103,7 @@ export default function BookDetail() {
             </a>
           ) : (
             <a
-              href={book.file_url}
+              href={fileUrl}
               target="_blank"
               rel="noreferrer"
               className="btn btn-primary"
@@ -112,7 +114,7 @@ export default function BookDetail() {
             </a>
           )}
           <a
-            href={book.file_url}
+            href={fileUrl}
             download
             className="btn btn-secondary"
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textDecoration: 'none' }}

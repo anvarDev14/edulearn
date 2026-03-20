@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { BookOpen, Crown } from 'lucide-react'
-import { booksAPI } from '../api'
+import { booksAPI, getMediaUrl } from '../api'
 import { useAuth } from '../context/AuthContext'
 
 export default function BookCategory() {
@@ -60,7 +60,7 @@ export default function BookCategory() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}>
                   {book.cover_url
-                    ? <img src={book.cover_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ? <img src={getMediaUrl(book.cover_url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     : <span style={{ fontSize: 40 }}>📖</span>
                   }
                 </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Pin, Eye, Play } from 'lucide-react'
-import { newsAPI } from '../api'
+import { newsAPI, getMediaUrl } from '../api'
 import Loader from '../components/common/Loader'
 
 export default function NewsDetail() {
@@ -40,7 +40,7 @@ export default function NewsDetail() {
 
       {news.media_url && news.media_type === 'image' && (
         <img
-          src={news.media_url}
+          src={getMediaUrl(news.media_url)}
           alt={news.title}
           style={{ width: '100%', borderRadius: 'var(--radius)', marginBottom: 20, objectFit: 'cover', maxHeight: 240 }}
         />

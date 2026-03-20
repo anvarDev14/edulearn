@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, Crown, ChevronDown, ChevronUp, ChevronLeft, X, Upload, CheckCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { adminAPI } from '../../api'
+import { adminAPI, getMediaUrl } from '../../api'
 
 const emptyCategory = { title: '', description: '', emoji: '📖', order_index: 0 }
 const emptyBook = {
@@ -343,7 +343,7 @@ export default function AdminBooks() {
                 <input style={inp} placeholder="https://..." value={bookForm.cover_url} onChange={e => setBookForm(f => ({ ...f, cover_url: e.target.value }))} />
                 {bookForm.cover_url && (
                   <img
-                    src={bookForm.cover_url} alt="cover"
+                    src={getMediaUrl(bookForm.cover_url)} alt="cover"
                     style={{ width: 80, height: 110, objectFit: 'cover', borderRadius: 8, marginTop: 8 }}
                     onError={e => e.target.style.display = 'none'}
                   />

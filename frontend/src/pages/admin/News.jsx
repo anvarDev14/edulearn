@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Trash2, Pin, PinOff, Eye, Image, Video, FileText, X } from 'lucide-react'
-import { adminAPI } from '../../api'
+import { adminAPI, getMediaUrl } from '../../api'
 
 const MEDIA_TYPES = [
   { value: 'text', label: 'Faqat matn', icon: <FileText size={14} /> },
@@ -160,7 +160,7 @@ export default function AdminNews() {
                 />
                 {form.media_type === 'image' && form.media_url && (
                   <img
-                    src={form.media_url}
+                    src={getMediaUrl(form.media_url)}
                     alt="preview"
                     style={{ width: '100%', borderRadius: 10, marginTop: 8, maxHeight: 200, objectFit: 'cover' }}
                     onError={e => e.target.style.display = 'none'}
@@ -214,7 +214,7 @@ export default function AdminNews() {
               {/* Media preview */}
               {n.media_type === 'image' && n.media_url && (
                 <img
-                  src={n.media_url}
+                  src={getMediaUrl(n.media_url)}
                   alt=""
                   style={{ width: '100%', borderRadius: 10, marginBottom: 10, maxHeight: 180, objectFit: 'cover' }}
                   onError={e => e.target.style.display = 'none'}

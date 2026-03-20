@@ -4,6 +4,14 @@ import axios from 'axios'
 // This ensures the frontend and bot talk to the same backend instance/database.
 const API_URL = import.meta.env.VITE_API_URL || '/api'
 
+// Helper: relative upload paths → full URL
+export const getMediaUrl = (url) => {
+  if (!url) return null
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  const base = import.meta.env.VITE_API_URL?.replace('/api', '') || ''
+  return `${base}/${url.startsWith('/') ? url.slice(1) : url}`
+}
+
 const api = axios.create({
   baseURL: API_URL,
   headers: { 'Content-Type': 'application/json' }
