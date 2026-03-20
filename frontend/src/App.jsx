@@ -40,6 +40,8 @@ import AdminQuizCreate from './pages/admin/QuizCreate'
 import AdminQuizAICreate from './pages/admin/QuizAICreate'
 import AdminSettings from './pages/admin/Settings'
 import AdminNews from './pages/admin/News'
+import AdminAudio from './pages/admin/Audio'
+import AdminBooks from './pages/admin/Books'
 
 // Components
 import BottomNav from './components/layout/BottomNav'
@@ -112,6 +114,8 @@ function AppContent() {
           <Route path="/admin/payments" element={<PrivateRoute adminOnly><AdminPayments /></PrivateRoute>} />
           <Route path="/admin/settings" element={<PrivateRoute adminOnly><AdminSettings /></PrivateRoute>} />
           <Route path="/admin/news" element={<PrivateRoute adminOnly><AdminNews /></PrivateRoute>} />
+          <Route path="/admin/audio" element={<PrivateRoute adminOnly><AdminAudio /></PrivateRoute>} />
+          <Route path="/admin/books" element={<PrivateRoute adminOnly><AdminBooks /></PrivateRoute>} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
