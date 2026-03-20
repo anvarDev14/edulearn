@@ -17,6 +17,8 @@ from app.models.lesson import Lesson
 from app.models.quiz import Quiz, Question
 from app.models.payment import Payment
 from app.models.progress import UserProgress
+from app.models.audio import AudioCategory, Audio
+from app.models.book import BookCategory, Book
 from app.api.deps import get_current_admin
 
 router = APIRouter()
@@ -64,6 +66,48 @@ class QuestionCreate(BaseModel):
 
 class GrantPremium(BaseModel):
     days: int = 30
+
+
+# Audio schemas
+class AudioCategoryCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    emoji: str = "🎧"
+    order_index: int = 0
+
+
+class AudioCreate(BaseModel):
+    category_id: int
+    title: str
+    description: Optional[str] = None
+    audio_url: str
+    cover_url: Optional[str] = None
+    duration_sec: int = 0
+    author: Optional[str] = None
+    language: Optional[str] = None
+    is_premium: bool = False
+    order_index: int = 0
+
+
+# Book schemas
+class BookCategoryCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    emoji: str = "📖"
+    order_index: int = 0
+
+
+class BookCreate(BaseModel):
+    category_id: int
+    title: str
+    description: Optional[str] = None
+    file_url: Optional[str] = None
+    cover_url: Optional[str] = None
+    author: Optional[str] = None
+    language: Optional[str] = None
+    pages: Optional[int] = None
+    is_premium: bool = False
+    order_index: int = 0
 
 
 # Dashboard
@@ -403,11 +447,211 @@ async def delete_quiz(
     """Quizni o'chirish"""
     result = await db.execute(select(Quiz).where(Quiz.id == quiz_id))
     quiz = result.scalar_one_or_none()
-    
+
     if not quiz:
         raise HTTPException(404, "Quiz topilmadi")
-    
+
     await db.delete(quiz)
     await db.commit()
-    
+
     return {"success": True}
+
+
+# ─── Audio Library Admin ───────────────────────────────────────────────────────
+
+@router.get("/audio/categories")
+async def get_audio_categories(
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(AudioCategory).order_by(AudioCategory.order_index))
+    cats = result.scalars().all()
+    return [{"id": c.id, "title": c.title, "emoji": c.emoji, "order_index": c.order_index, "is_active": c.is_active} for c in cats]
+
+
+@router.post("/audio/categories")
+async def create_audio_category(
+    data: AudioCategoryCreate,
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    cat = AudioCategory(**data.model_dump())
+    db.add(cat)
+    await db.commit()
+    await db.refresh(cat)
+    return {"id": cat.id, "title": cat.title}
+
+
+@router.delete("/audio/categories/{cat_id}")
+async def delete_audio_category(
+    cat_id: int,
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(AudioCategory).where(AudioCategory.id == cat_id))
+    cat = result.scalar_one_or_none()
+    if not cat:
+        raise HTTPException(404, "Kategoriya topilmadi")
+    await db.delete(cat)
+    await db.commit()
+    return {"success": True}
+
+
+@router.get("/audio/categories/{cat_id}/audios")
+async def get_category_audios_admin(
+    cat_id: int,
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(Audio).where(Audio.category_id == cat_id).order_by(Audio.order_index)
+    )
+    audios = result.scalars().all()
+    return [{"id": a.id, "title": a.title, "author": a.author, "is_premium": a.is_premium, "duration_sec": a.duration_sec, "order_index": a.order_index} for a in audios]
+
+
+@router.post("/audio")
+async def create_audio(
+    data: AudioCreate,
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    audio = Audio(**data.model_dump())
+    db.add(audio)
+    await db.commit()
+    await db.refresh(audio)
+    return {"id": audio.id, "title": audio.title}
+
+
+@router.delete("/audio/{audio_id}")
+async def delete_audio(
+    audio_id: int,
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Audio).where(Audio.id == audio_id))
+    audio = result.scalar_one_or_none()
+    if not audio:
+        raise HTTPException(404, "Audio topilmadi")
+    await db.delete(audio)
+    await db.commit()
+    return {"success": True}
+
+
+@router.post("/audio/upload")
+async def upload_audio_file(
+    file: UploadFile = File(...),
+    admin: User = Depends(get_current_admin)
+):
+    """Audio fayl yuklash"""
+    allowed = {"mp3", "wav", "ogg", "m4a", "aac", "flac"}
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    if ext not in allowed:
+        raise HTTPException(400, "Faqat audio fayllar qabul qilinadi (mp3, wav, ogg, m4a, aac)")
+    os.makedirs("uploads/audio", exist_ok=True)
+    filename = f"{uuid.uuid4()}.{ext}"
+    path = f"uploads/audio/{filename}"
+    content = await file.read()
+    with open(path, "wb") as f:
+        f.write(content)
+    return {"url": f"uploads/audio/{filename}"}
+
+
+# ─── Books Library Admin ───────────────────────────────────────────────────────
+
+@router.get("/books/categories")
+async def get_book_categories(
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(BookCategory).order_by(BookCategory.order_index))
+    cats = result.scalars().all()
+    return [{"id": c.id, "title": c.title, "emoji": c.emoji, "order_index": c.order_index, "is_active": c.is_active} for c in cats]
+
+
+@router.post("/books/categories")
+async def create_book_category(
+    data: BookCategoryCreate,
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    cat = BookCategory(**data.model_dump())
+    db.add(cat)
+    await db.commit()
+    await db.refresh(cat)
+    return {"id": cat.id, "title": cat.title}
+
+
+@router.delete("/books/categories/{cat_id}")
+async def delete_book_category(
+    cat_id: int,
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(BookCategory).where(BookCategory.id == cat_id))
+    cat = result.scalar_one_or_none()
+    if not cat:
+        raise HTTPException(404, "Kategoriya topilmadi")
+    await db.delete(cat)
+    await db.commit()
+    return {"success": True}
+
+
+@router.get("/books/categories/{cat_id}/books")
+async def get_category_books_admin(
+    cat_id: int,
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(Book).where(Book.category_id == cat_id).order_by(Book.order_index)
+    )
+    books = result.scalars().all()
+    return [{"id": b.id, "title": b.title, "author": b.author, "is_premium": b.is_premium, "pages": b.pages, "order_index": b.order_index} for b in books]
+
+
+@router.post("/books")
+async def create_book(
+    data: BookCreate,
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    book = Book(**data.model_dump())
+    db.add(book)
+    await db.commit()
+    await db.refresh(book)
+    return {"id": book.id, "title": book.title}
+
+
+@router.delete("/books/{book_id}")
+async def delete_book(
+    book_id: int,
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Book).where(Book.id == book_id))
+    book = result.scalar_one_or_none()
+    if not book:
+        raise HTTPException(404, "Kitob topilmadi")
+    await db.delete(book)
+    await db.commit()
+    return {"success": True}
+
+
+@router.post("/books/upload")
+async def upload_book_file(
+    file: UploadFile = File(...),
+    admin: User = Depends(get_current_admin)
+):
+    """Kitob fayl yuklash (PDF va boshqalar)"""
+    allowed = {"pdf", "epub", "fb2", "djvu", "doc", "docx"}
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    if ext not in allowed:
+        raise HTTPException(400, "Faqat kitob fayllar qabul qilinadi (pdf, epub, fb2)")
+    os.makedirs("uploads/books", exist_ok=True)
+    filename = f"{uuid.uuid4()}.{ext}"
+    path = f"uploads/books/{filename}"
+    content = await file.read()
+    with open(path, "wb") as f:
+        f.write(content)
+    return {"url": f"uploads/books/{filename}"}

@@ -126,6 +126,20 @@ export const aiAPI = {
     api.get(`/ai/history${lessonId ? `?lesson_id=${lessonId}` : ''}`)
 }
 
+// Audio API
+export const audioAPI = {
+  getCategories: () => api.get('/audio/categories'),
+  getCategoryAudios: (categoryId) => api.get(`/audio/categories/${categoryId}`),
+  getAudio: (audioId) => api.get(`/audio/${audioId}`),
+}
+
+// Books API
+export const booksAPI = {
+  getCategories: () => api.get('/books/categories'),
+  getCategoryBooks: (categoryId) => api.get(`/books/categories/${categoryId}`),
+  getBook: (bookId) => api.get(`/books/${bookId}`),
+}
+
 // Admin API
 export const adminAPI = {
   getStats: () => api.get('/admin/stats'),
@@ -150,15 +164,49 @@ export const adminAPI = {
   createQuiz: (data) => api.post('/admin/quizzes', data),
   addQuestion: (quizId, data) => api.post(`/admin/quizzes/${quizId}/questions`, data),
   deleteQuiz: (id) => api.delete(`/admin/quizzes/${id}`),
+  // News
+  getNews: (skip = 0, limit = 30) => api.get(`/news?skip=${skip}&limit=${limit}`),
   createNews: (data) => api.post('/news', data),
+  updateNews: (id, data) => api.put(`/news/${id}`, data),
   deleteNews: (id) => api.delete(`/news/${id}`),
   toggleNewsPin: (id) => api.post(`/news/${id}/pin`),
+  // Payments
   getPendingPayments: () => api.get('/payment/admin/pending'),
   reviewPayment: (id, approved, note) =>
     api.post(`/payment/admin/${id}/review`, { approved, note }),
   // Challenges admin
   createChallenge: (data) => api.post('/admin/challenges', data),
-  deleteChallenge: (id) => api.delete(`/admin/challenges/${id}`)
+  deleteChallenge: (id) => api.delete(`/admin/challenges/${id}`),
+  // Audio admin
+  getAudioCategories: () => api.get('/admin/audio/categories'),
+  createAudioCategory: (data) => api.post('/admin/audio/categories', data),
+  deleteAudioCategory: (id) => api.delete(`/admin/audio/categories/${id}`),
+  getCategoryAudios: (catId) => api.get(`/admin/audio/categories/${catId}/audios`),
+  createAudio: (data) => api.post('/admin/audio', data),
+  deleteAudio: (id) => api.delete(`/admin/audio/${id}`),
+  uploadAudio: (file, onProgress) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post('/admin/audio/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: onProgress,
+    })
+  },
+  // Books admin
+  getBookCategories: () => api.get('/admin/books/categories'),
+  createBookCategory: (data) => api.post('/admin/books/categories', data),
+  deleteBookCategory: (id) => api.delete(`/admin/books/categories/${id}`),
+  getCategoryBooks: (catId) => api.get(`/admin/books/categories/${catId}/books`),
+  createBook: (data) => api.post('/admin/books', data),
+  deleteBook: (id) => api.delete(`/admin/books/${id}`),
+  uploadBook: (file, onProgress) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post('/admin/books/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: onProgress,
+    })
+  },
 }
 
 export default api

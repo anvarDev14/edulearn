@@ -24,6 +24,7 @@ export default function AdminDashboard() {
     { icon: '👥', label: 'Foydalanuvchilar', to: '/admin/users', desc: 'Boshqarish va premium berish' },
     { icon: '📚', label: 'Kurslar va Darslar', to: '/admin/modules', desc: "Kurs va dars qo'shish" },
     { icon: '❓', label: 'Testlar', to: '/admin/quizzes', desc: 'Test yaratish va boshqarish' },
+    { icon: '📰', label: 'Yangiliklar', to: '/admin/news', desc: "Yangilik qo'shish va boshqarish" },
     { icon: '💳', label: "To'lovlar", to: '/admin/payments', desc: "Premium so'rovlarni ko'rish" },
     { icon: '⚙️', label: 'Sozlamalar', to: '/admin/settings', desc: 'Platforma sozlamalari' },
   ]

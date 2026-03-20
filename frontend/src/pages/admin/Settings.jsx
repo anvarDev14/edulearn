@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   CreditCard, Bell, Shield, Save, Check,
-  ChevronLeft, Settings as SettingsIcon
+  ChevronLeft
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
@@ -34,7 +34,6 @@ export default function AdminSettings() {
     </div>
   )
 
-  /* ── helpers ── */
   const inp = {
     width: '100%', padding: '10px 12px',
     background: 'var(--bg2)', border: '1.5px solid var(--border)',
@@ -85,6 +84,7 @@ export default function AdminSettings() {
 
   return (
     <div className="page">
+
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
         <button
@@ -104,7 +104,7 @@ export default function AdminSettings() {
         </div>
       </div>
 
-      {/* Payment settings */}
+      {/* To'lov sozlamalari */}
       <div className="card" style={{ marginBottom: 12 }}>
         <SectionLabel icon={<CreditCard size={17} style={{ color: 'var(--green)' }} />}>
           To'lov sozlamalari
@@ -164,7 +164,7 @@ export default function AdminSettings() {
         </div>
       </div>
 
-      {/* Notifications */}
+      {/* Bildirishnomalar */}
       <div className="card" style={{ marginBottom: 12 }}>
         <SectionLabel icon={<Bell size={17} style={{ color: 'var(--gold)' }} />}>
           Bildirishnomalar
@@ -189,7 +189,7 @@ export default function AdminSettings() {
         />
       </div>
 
-      {/* System */}
+      {/* Tizim */}
       <div className="card" style={{ marginBottom: 20 }}>
         <SectionLabel icon={<Shield size={17} style={{ color: 'var(--primary)' }} />}>
           Tizim sozlamalari
@@ -210,7 +210,7 @@ export default function AdminSettings() {
         />
       </div>
 
-      {/* Save */}
+      {/* Saqlash */}
       <button
         onClick={handleSave}
         className="btn btn-full btn-lg"
@@ -225,6 +225,7 @@ export default function AdminSettings() {
           : <><Save size={18} /> Saqlash</>
         }
       </button>
+
     </div>
   )
 }

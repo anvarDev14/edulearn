@@ -23,6 +23,12 @@ import AIChat from './pages/AIChat'
 import Bookmarks from './pages/Bookmarks'
 import Certificates from './pages/Certificates'
 import Friends from './pages/Friends'
+import AudioLibrary from './pages/AudioLibrary'
+import AudioCategory from './pages/AudioCategory'
+import AudioPlayer from './pages/AudioPlayer'
+import BookLibrary from './pages/BookLibrary'
+import BookCategory from './pages/BookCategory'
+import BookDetail from './pages/BookDetail'
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard'
@@ -33,6 +39,7 @@ import AdminQuizzes from './pages/admin/Quizzes'
 import AdminQuizCreate from './pages/admin/QuizCreate'
 import AdminQuizAICreate from './pages/admin/QuizAICreate'
 import AdminSettings from './pages/admin/Settings'
+import AdminNews from './pages/admin/News'
 
 // Components
 import BottomNav from './components/layout/BottomNav'
@@ -85,6 +92,16 @@ function AppContent() {
           <Route path="/certificates" element={<PrivateRoute><Certificates /></PrivateRoute>} />
           <Route path="/friends" element={<PrivateRoute><Friends /></PrivateRoute>} />
 
+          {/* Audio Library */}
+          <Route path="/audio" element={<PrivateRoute><AudioLibrary /></PrivateRoute>} />
+          <Route path="/audio/:categoryId" element={<PrivateRoute><AudioCategory /></PrivateRoute>} />
+          <Route path="/audio/player/:audioId" element={<PrivateRoute><AudioPlayer /></PrivateRoute>} />
+
+          {/* Books Library */}
+          <Route path="/books" element={<PrivateRoute><BookLibrary /></PrivateRoute>} />
+          <Route path="/books/:categoryId" element={<PrivateRoute><BookCategory /></PrivateRoute>} />
+          <Route path="/books/detail/:bookId" element={<PrivateRoute><BookDetail /></PrivateRoute>} />
+
           {/* Admin */}
           <Route path="/admin" element={<PrivateRoute adminOnly><AdminDashboard /></PrivateRoute>} />
           <Route path="/admin/users" element={<PrivateRoute adminOnly><AdminUsers /></PrivateRoute>} />
@@ -94,6 +111,7 @@ function AppContent() {
           <Route path="/admin/quizzes/ai-create" element={<PrivateRoute adminOnly><AdminQuizAICreate /></PrivateRoute>} />
           <Route path="/admin/payments" element={<PrivateRoute adminOnly><AdminPayments /></PrivateRoute>} />
           <Route path="/admin/settings" element={<PrivateRoute adminOnly><AdminSettings /></PrivateRoute>} />
+          <Route path="/admin/news" element={<PrivateRoute adminOnly><AdminNews /></PrivateRoute>} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

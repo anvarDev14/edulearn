@@ -6,15 +6,21 @@ from app.models.progress import UserProgress
 from app.models.xp_history import XPHistory
 from app.models.payment import Payment
 from app.models.news import News
+from app.models.audio import AudioCategory, Audio
+from app.models.book import BookCategory, Book
 
 __all__ = [
     "User",
-    "Module", 
+    "Module",
     "Lesson",
     "Quiz",
     "Question",
     "UserProgress",
     "XPHistory",
     "Payment",
-    "News"
+    "News",
+    "AudioCategory",
+    "Audio",
+    "BookCategory",
+    "Book",
 ]
