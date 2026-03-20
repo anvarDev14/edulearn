@@ -23,6 +23,7 @@ import AIChat from './pages/AIChat'
 import Bookmarks from './pages/Bookmarks'
 import Certificates from './pages/Certificates'
 import Friends from './pages/Friends'
+import Library from './pages/Library'
 import AudioLibrary from './pages/AudioLibrary'
 import AudioCategory from './pages/AudioCategory'
 import AudioPlayer from './pages/AudioPlayer'
@@ -93,6 +94,9 @@ function AppContent() {
           <Route path="/bookmarks" element={<PrivateRoute><Bookmarks /></PrivateRoute>} />
           <Route path="/certificates" element={<PrivateRoute><Certificates /></PrivateRoute>} />
           <Route path="/friends" element={<PrivateRoute><Friends /></PrivateRoute>} />
+
+          {/* Library (unified) */}
+          <Route path="/library" element={<PrivateRoute><Library /></PrivateRoute>} />
 
           {/* Audio Library */}
           <Route path="/audio" element={<PrivateRoute><AudioLibrary /></PrivateRoute>} />

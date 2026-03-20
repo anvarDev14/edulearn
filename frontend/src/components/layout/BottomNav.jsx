@@ -1,12 +1,12 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { Home, BookOpen, Search, Target, User } from 'lucide-react'
+import { Home, BookOpen, Search, Library, User } from 'lucide-react'
 
 const NAV = [
   { to: '/', icon: Home, label: 'Bosh' },
   { to: '/modules', icon: BookOpen, label: 'Kurslar' },
   { to: '/search', icon: Search, label: 'Qidiruv' },
-  { to: '/challenges', icon: Target, label: 'Topshiriq' },
+  { to: '/library', icon: Library, label: 'Kutubxona' },
   { to: '/profile', icon: User, label: 'Profil' },
 ]
 

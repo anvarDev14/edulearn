@@ -178,6 +178,24 @@ export default function Home() {
         </div>
       )}
 
+      {/* Library shortcut */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+        <Link to="/library?tab=audio" style={{ textDecoration: 'none' }}>
+          <div className="card card-sm" style={{ textAlign: 'center', cursor: 'pointer' }}>
+            <div style={{ fontSize: 28, marginBottom: 6 }}>🎧</div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>Audio</p>
+            <p style={{ fontSize: 11, color: 'var(--text3)' }}>Darsliklar</p>
+          </div>
+        </Link>
+        <Link to="/library?tab=books" style={{ textDecoration: 'none' }}>
+          <div className="card card-sm" style={{ textAlign: 'center', cursor: 'pointer' }}>
+            <div style={{ fontSize: 28, marginBottom: 6 }}>📚</div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>Kitoblar</p>
+            <p style={{ fontSize: 11, color: 'var(--text3)' }}>Elektron</p>
+          </div>
+        </Link>
+      </div>
+
       {/* AI Chat shortcut */}
       <Link to="/ai-chat">
         <div className="card" style={{
