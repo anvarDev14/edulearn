@@ -1,12 +1,12 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { Home, BookOpen, Search, Library, User } from 'lucide-react'
+import { Home, BookOpen, Search, Swords, User } from 'lucide-react'
 
 const NAV = [
   { to: '/', icon: Home, label: 'Bosh' },
   { to: '/modules', icon: BookOpen, label: 'Kurslar' },
   { to: '/search', icon: Search, label: 'Qidiruv' },
-  { to: '/library', icon: Library, label: 'Kutubxona' },
+  { to: '/battle', icon: Swords, label: 'Jang' },
   { to: '/profile', icon: User, label: 'Profil' },
 ]
 
@@ -14,7 +14,7 @@ export default function BottomNav() {
   const { user } = useAuth()
   const location = useLocation()
 
-  const hideOn = ['/login', '/quiz/']
+  const hideOn = ['/login', '/quiz/', '/battle/']
   if (!user) return null
   if (hideOn.some(p => location.pathname.startsWith(p))) return null
 

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Search as SearchIcon, BookOpen, FileText, Newspaper, Users, Crown } from 'lucide-react'
+import { Search as SearchIcon, BookOpen, FileText, Newspaper, Users, Crown, Lock } from 'lucide-react'
 import { searchAPI } from '../api'
 
 function debounce(fn, ms) {
@@ -108,9 +108,12 @@ export default function Search() {
                 {modules.map(m => (
                   <Link key={m.id} to={`/modules/${m.id}`} style={{ textDecoration: 'none' }}>
                     <div className="card card-sm" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <span style={{ fontSize: 24, flexShrink: 0 }}>{m.icon || '📚'}</span>
+                      <span style={{ fontSize: 24, flexShrink: 0 }}>{m.emoji || '📚'}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{m.title}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{m.title}</p>
+                          {m.is_premium && <Crown size={12} style={{ color: 'var(--gold)', flexShrink: 0 }} />}
+                        </div>
                         {m.description && <p style={{ fontSize: 12, color: 'var(--text3)', marginTop: 1 }} className="truncate">{m.description}</p>}
                       </div>
                     </div>

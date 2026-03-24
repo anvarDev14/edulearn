@@ -134,6 +134,19 @@ export const aiAPI = {
     api.get(`/ai/history${lessonId ? `?lesson_id=${lessonId}` : ''}`)
 }
 
+// Battle API
+export const battleAPI = {
+  getLobbies: (moduleId) => api.get(`/battle/lobbies${moduleId ? `?module_id=${moduleId}` : ''}`),
+  create: (moduleId) => api.post('/battle/create', { module_id: moduleId }),
+  join: (battleId) => api.post(`/battle/${battleId}/join`),
+  cancel: (battleId) => api.post(`/battle/${battleId}/cancel`),
+  getActive: () => api.get('/battle/active'),
+  getStatus: (battleId) => api.get(`/battle/${battleId}/status`),
+  submitAnswer: (battleId, questionId, selectedAnswer) =>
+    api.post(`/battle/${battleId}/answer`, { question_id: questionId, selected_answer: selectedAnswer }),
+  getHistory: () => api.get('/battle/history'),
+}
+
 // Audio API
 export const audioAPI = {
   getCategories: () => api.get('/audio/categories'),

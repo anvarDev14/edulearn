@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.database import engine, Base
-from app.api import auth, lessons, quiz, gamification, payment, news, admin, leaderboard, friends, bookmarks, certificates, search, challenges, ai_chat, audio, books
+from app.api import auth, lessons, quiz, gamification, payment, news, admin, leaderboard, friends, bookmarks, certificates, search, challenges, ai_chat, audio, books, battle
 from app.tasks.premium_tasks import check_premium_expiry
 from app.config import settings
 
@@ -77,6 +77,7 @@ app.include_router(challenges.router, prefix="/api/challenges", tags=["challenge
 app.include_router(ai_chat.router, prefix="/api/ai", tags=["ai"])
 app.include_router(audio.router, prefix="/api/audio", tags=["audio"])
 app.include_router(books.router, prefix="/api/books", tags=["books"])
+app.include_router(battle.router, prefix="/api/battle", tags=["battle"])
 
 
 @app.get("/")

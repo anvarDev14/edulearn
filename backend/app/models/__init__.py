@@ -8,6 +8,7 @@ from app.models.payment import Payment
 from app.models.news import News
 from app.models.audio import AudioCategory, Audio
 from app.models.book import BookCategory, Book
+from app.models.battle import Battle, BattleAnswer
 
 __all__ = [
     "User",
@@ -23,4 +24,6 @@ __all__ = [
     "Audio",
     "BookCategory",
     "Book",
+    "Battle",
+    "BattleAnswer",
 ]

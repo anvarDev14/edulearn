@@ -23,13 +23,17 @@ import AIChat from './pages/AIChat'
 import Bookmarks from './pages/Bookmarks'
 import Certificates from './pages/Certificates'
 import Friends from './pages/Friends'
+
+// Library
 import Library from './pages/Library'
-import AudioLibrary from './pages/AudioLibrary'
 import AudioCategory from './pages/AudioCategory'
 import AudioPlayer from './pages/AudioPlayer'
-import BookLibrary from './pages/BookLibrary'
 import BookCategory from './pages/BookCategory'
 import BookDetail from './pages/BookDetail'
+
+// Battle
+import Battle from './pages/Battle'
+import BattleGame from './pages/BattleGame'
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard'
@@ -44,7 +48,7 @@ import AdminNews from './pages/admin/News'
 import AdminAudio from './pages/admin/Audio'
 import AdminBooks from './pages/admin/Books'
 
-// Components
+// Layout
 import BottomNav from './components/layout/BottomNav'
 import Loader from './components/common/Loader'
 
@@ -66,49 +70,51 @@ function PublicRoute({ children }) {
 
 function AppContent() {
   const { loading } = useAuth()
-
   if (loading) return <Loader fullScreen />
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
       <div className="app-shell">
         <Routes>
-          {/* Public */}
+
+          {/* ── Public ─────────────────────────────────────────── */}
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
 
-          {/* Protected */}
+          {/* ── Main ───────────────────────────────────────────── */}
           <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
           <Route path="/modules" element={<PrivateRoute><Modules /></PrivateRoute>} />
           <Route path="/modules/:moduleId" element={<PrivateRoute><ModuleLessons /></PrivateRoute>} />
           <Route path="/lesson/:lessonId" element={<PrivateRoute><Lesson /></PrivateRoute>} />
           <Route path="/quiz/:quizId" element={<PrivateRoute><Quiz /></PrivateRoute>} />
+          <Route path="/search" element={<PrivateRoute><Search /></PrivateRoute>} />
           <Route path="/leaderboard" element={<PrivateRoute><Leaderboard /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+          <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
           <Route path="/premium" element={<PrivateRoute><Premium /></PrivateRoute>} />
           <Route path="/news" element={<PrivateRoute><News /></PrivateRoute>} />
           <Route path="/news/:id" element={<PrivateRoute><NewsDetail /></PrivateRoute>} />
-          <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-          <Route path="/search" element={<PrivateRoute><Search /></PrivateRoute>} />
           <Route path="/challenges" element={<PrivateRoute><Challenges /></PrivateRoute>} />
           <Route path="/ai-chat" element={<PrivateRoute><AIChat /></PrivateRoute>} />
           <Route path="/bookmarks" element={<PrivateRoute><Bookmarks /></PrivateRoute>} />
           <Route path="/certificates" element={<PrivateRoute><Certificates /></PrivateRoute>} />
           <Route path="/friends" element={<PrivateRoute><Friends /></PrivateRoute>} />
 
-          {/* Library (unified) */}
+          {/* ── Library ────────────────────────────────────────── */}
           <Route path="/library" element={<PrivateRoute><Library /></PrivateRoute>} />
 
-          {/* Audio Library */}
-          <Route path="/audio" element={<PrivateRoute><AudioLibrary /></PrivateRoute>} />
-          <Route path="/audio/:categoryId" element={<PrivateRoute><AudioCategory /></PrivateRoute>} />
+          {/* Audio — specific routes BEFORE dynamic :categoryId */}
           <Route path="/audio/player/:audioId" element={<PrivateRoute><AudioPlayer /></PrivateRoute>} />
+          <Route path="/audio/:categoryId" element={<PrivateRoute><AudioCategory /></PrivateRoute>} />
 
-          {/* Books Library */}
-          <Route path="/books" element={<PrivateRoute><BookLibrary /></PrivateRoute>} />
-          <Route path="/books/:categoryId" element={<PrivateRoute><BookCategory /></PrivateRoute>} />
+          {/* Books — specific routes BEFORE dynamic :categoryId */}
           <Route path="/books/detail/:bookId" element={<PrivateRoute><BookDetail /></PrivateRoute>} />
+          <Route path="/books/:categoryId" element={<PrivateRoute><BookCategory /></PrivateRoute>} />
 
-          {/* Admin */}
+          {/* ── Battle ─────────────────────────────────────────── */}
+          <Route path="/battle" element={<PrivateRoute><Battle /></PrivateRoute>} />
+          <Route path="/battle/:battleId" element={<PrivateRoute><BattleGame /></PrivateRoute>} />
+
+          {/* ── Admin ──────────────────────────────────────────── */}
           <Route path="/admin" element={<PrivateRoute adminOnly><AdminDashboard /></PrivateRoute>} />
           <Route path="/admin/users" element={<PrivateRoute adminOnly><AdminUsers /></PrivateRoute>} />
           <Route path="/admin/modules" element={<PrivateRoute adminOnly><AdminModules /></PrivateRoute>} />
@@ -121,7 +127,9 @@ function AppContent() {
           <Route path="/admin/audio" element={<PrivateRoute adminOnly><AdminAudio /></PrivateRoute>} />
           <Route path="/admin/books" element={<PrivateRoute adminOnly><AdminBooks /></PrivateRoute>} />
 
+          {/* ── Fallback ───────────────────────────────────────── */}
           <Route path="*" element={<Navigate to="/" replace />} />
+
         </Routes>
       </div>
       <BottomNav />
