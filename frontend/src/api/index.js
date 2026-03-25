@@ -185,6 +185,7 @@ export const adminAPI = {
   createQuiz: (data) => api.post('/admin/quizzes', data),
   addQuestion: (quizId, data) => api.post(`/admin/quizzes/${quizId}/questions`, data),
   deleteQuiz: (id) => api.delete(`/admin/quizzes/${id}`),
+  generateQuizAI: (data) => api.post('/admin/quizzes/ai-generate', data),
   // News
   getNews: (skip = 0, limit = 30) => api.get(`/news?skip=${skip}&limit=${limit}`),
   createNews: (data) => api.post('/news', data),

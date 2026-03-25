@@ -9,6 +9,9 @@ from typing import Optional, List
 from datetime import datetime, timedelta
 import uuid
 import os
+import httpx
+import json
+import re
 
 from app.database import get_db
 from app.models.user import User
@@ -455,6 +458,131 @@ async def delete_quiz(
     await db.commit()
 
     return {"success": True}
+
+
+# AI Quiz Generator
+class AIQuizGenerate(BaseModel):
+    lesson_id: int
+    question_count: int = 5
+    difficulty: str = "medium"  # easy | medium | hard
+    extra_context: Optional[str] = None
+
+
+@router.post("/quizzes/ai-generate")
+async def generate_quiz_ai(
+    data: AIQuizGenerate,
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    """AI yordamida quiz savollari yaratish"""
+    from app.config import settings
+
+    if not settings.ANTHROPIC_API_KEY:
+        raise HTTPException(503, "AI xizmati sozlanmagan (ANTHROPIC_API_KEY yo'q)")
+
+    lesson = await db.get(Lesson, data.lesson_id)
+    if not lesson:
+        raise HTTPException(404, "Dars topilmadi")
+
+    module_title = ""
+    if lesson.module_id:
+        module = await db.get(Module, lesson.module_id)
+        if module:
+            module_title = module.title
+
+    # Build context for Claude
+    parts = []
+    if module_title:
+        parts.append(f"Kurs: {module_title}")
+    parts.append(f"Dars: {lesson.title}")
+    if lesson.description:
+        parts.append(f"Tavsif: {lesson.description}")
+    if lesson.content:
+        parts.append(f"Dars matni:\n{lesson.content[:3000]}")
+    if data.extra_context:
+        parts.append(f"Qo'shimcha ma'lumot: {data.extra_context}")
+
+    context = "\n\n".join(parts)
+    diff_map = {
+        "easy": "oson — asosiy ta'riflar va tushunchalar",
+        "medium": "o'rtacha — tushunish va qo'llash",
+        "hard": "qiyin — tahlil va chuqur bilim"
+    }
+    diff_label = diff_map.get(data.difficulty, "o'rtacha")
+
+    prompt = f"""Quyidagi dars mavzusiga oid {data.question_count} ta test savoli yarating.
+
+Kontekst:
+{context}
+
+Talablar:
+- Qiyinlik: {diff_label}
+- Har bir savolda 4 ta javob varianti
+- Faqat 1 ta to'g'ri javob
+- O'zbek tilida
+
+FAQAT quyidagi JSON formatida javob bering, boshqa matn bo'lmasin:
+[
+  {{
+    "question": "Savol matni?",
+    "options": ["A varianti", "B varianti", "C varianti", "D varianti"],
+    "correct_index": 0,
+    "explanation": "Nima uchun A to'g'ri"
+  }}
+]"""
+
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        try:
+            resp = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": settings.ANTHROPIC_API_KEY,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json"
+                },
+                json={
+                    "model": "claude-haiku-4-5-20251001",
+                    "max_tokens": 4096,
+                    "messages": [{"role": "user", "content": prompt}]
+                }
+            )
+            result = resp.json()
+            if "error" in result:
+                raise HTTPException(500, f"AI xatosi: {result['error'].get('message', 'Noma\'lum')}")
+            raw_text = result["content"][0]["text"]
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(500, f"AI ga ulanishda xato: {str(e)}")
+
+    # Extract JSON array from response
+    try:
+        match = re.search(r'\[[\s\S]*\]', raw_text)
+        questions_raw = json.loads(match.group() if match else raw_text.strip())
+    except json.JSONDecodeError:
+        raise HTTPException(500, "AI javobini o'qishda xato. Qayta urinib ko'ring.")
+
+    validated = []
+    for i, q in enumerate(questions_raw[:data.question_count]):
+        if not isinstance(q, dict):
+            continue
+        opts = [str(o) for o in q.get("options", [])[:4]]
+        if len(opts) < 2:
+            continue
+        correct_idx = int(q.get("correct_index", 0))
+        correct_idx = max(0, min(correct_idx, len(opts) - 1))
+        validated.append({
+            "id": i + 1,
+            "question": str(q.get("question", "")),
+            "options": opts,
+            "correct_index": correct_idx,
+            "explanation": str(q.get("explanation", ""))
+        })
+
+    if not validated:
+        raise HTTPException(500, "AI savollar yarata olmadi. Qayta urinib ko'ring.")
+
+    return {"questions": validated, "lesson_title": lesson.title}
 
 
 # ─── Audio Library Admin ───────────────────────────────────────────────────────
