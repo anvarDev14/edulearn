@@ -5,7 +5,9 @@
       "mcp__claude_ai_Vercel__list_projects",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(find /home/anvarcode/edulearn/backend -name *.db -o -name data -type d)"
     ]
   }
 }
