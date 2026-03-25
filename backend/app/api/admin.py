@@ -548,7 +548,8 @@ FAQAT quyidagi JSON formatida javob bering, boshqa matn bo'lmasin:
             )
             result = resp.json()
             if "error" in result:
-                raise HTTPException(500, f"AI xatosi: {result['error'].get('message', 'Noma\'lum')}")
+                err_msg = result["error"].get("message", "Noma'lum")
+                raise HTTPException(500, f"AI xatosi: {err_msg}")
             raw_text = result["content"][0]["text"]
         except HTTPException:
             raise
