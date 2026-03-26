@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 import os
 from contextlib import asynccontextmanager
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from sqlalchemy import text
 
 from app.database import engine, Base
 from app.api import auth, lessons, quiz, gamification, payment, news, admin, leaderboard, friends, bookmarks, certificates, search, challenges, ai_chat, audio, books, battle
@@ -17,12 +18,64 @@ from app.config import settings
 scheduler = AsyncIOScheduler()
 
 
+async def run_migrations(conn):
+    """Eski DB tablalarga yangi ustunlarni qo'shish (Alembic o'rniga)"""
+
+    async def add_col(table, column, col_type, default=None):
+        result = await conn.execute(text(f"PRAGMA table_info({table})"))
+        existing = [row[1] for row in result.fetchall()]
+        if column not in existing:
+            default_sql = f" DEFAULT {default}" if default is not None else ""
+            await conn.execute(text(
+                f"ALTER TABLE {table} ADD COLUMN {column} {col_type}{default_sql}"
+            ))
+            print(f"🔧 Migration: {table}.{column} qo'shildi")
+
+    # users
+    await add_col("users", "total_xp",      "INTEGER",  0)
+    await add_col("users", "level",          "INTEGER",  1)
+    await add_col("users", "streak_days",    "INTEGER",  0)
+    await add_col("users", "last_activity",  "DATETIME")
+    await add_col("users", "is_premium",     "BOOLEAN",  0)
+    await add_col("users", "premium_until",  "DATETIME")
+    await add_col("users", "is_active",      "BOOLEAN",  1)
+    await add_col("users", "updated_at",     "DATETIME")
+
+    # modules
+    await add_col("modules", "is_active",    "BOOLEAN",  1)
+    await add_col("modules", "image_url",    "VARCHAR(500)")
+    await add_col("modules", "emoji",        "VARCHAR(10)", "'📚'")
+
+    # lessons
+    await add_col("lessons", "is_active",    "BOOLEAN",  1)
+    await add_col("lessons", "duration_min", "INTEGER",  10)
+    await add_col("lessons", "content",      "TEXT")
+
+    # news
+    await add_col("news", "media_type",  "VARCHAR(20)", "'text'")
+    await add_col("news", "media_url",   "VARCHAR(500)")
+    await add_col("news", "is_pinned",   "BOOLEAN",     0)
+    await add_col("news", "is_active",   "BOOLEAN",     1)
+    await add_col("news", "views_count", "INTEGER",     0)
+
+    # quizzes
+    await add_col("quizzes", "pass_percentage",  "INTEGER", 70)
+    await add_col("quizzes", "time_limit_sec",   "INTEGER", 300)
+    await add_col("quizzes", "xp_reward",        "INTEGER", 100)
+
+    # questions
+    await add_col("questions", "explanation",   "TEXT")
+    await add_col("questions", "order_index",   "INTEGER", 0)
+    await add_col("questions", "question_type", "VARCHAR(30)", "'multiple_choice'")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
+        await run_migrations(conn)
+
     # Scheduler
     scheduler.add_job(check_premium_expiry, 'cron', hour=9, minute=0)
     scheduler.start()

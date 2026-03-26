@@ -26,10 +26,10 @@ async def search(
 
     pattern = f"%{q_clean}%"
 
-    # Search modules
+    # Search modules  (is_active != False — NULL ham o'tadi)
     modules_result = await db.execute(
         select(Module).where(
-            Module.is_active == True,
+            Module.is_active != False,
             or_(
                 func.lower(Module.title).contains(func.lower(q_clean)),
                 Module.title.ilike(pattern),
@@ -42,7 +42,7 @@ async def search(
     # Search lessons
     lessons_result = await db.execute(
         select(Lesson).where(
-            Lesson.is_active == True,
+            Lesson.is_active != False,
             or_(
                 Lesson.title.ilike(pattern),
                 func.lower(Lesson.title).contains(func.lower(q_clean)),
@@ -51,23 +51,24 @@ async def search(
     )
     lessons = lessons_result.scalars().all()
 
-    # Search news
-    news_result = await db.execute(
-        select(News).where(
-            News.is_active == True,
-            or_(
-                News.title.ilike(pattern),
-                News.content.ilike(pattern),
-            )
-        ).limit(4)
-    )
-    news_items = news_result.scalars().all()
+    # Search news — only select safe columns in case table is old
+    try:
+        news_result = await db.execute(
+            select(News.id, News.title).where(
+                or_(
+                    News.title.ilike(pattern),
+                )
+            ).limit(4)
+        )
+        news_items = [{"id": row[0], "title": row[1]} for row in news_result.fetchall()]
+    except Exception:
+        news_items = []
 
     # Search users (exclude self)
     users_result = await db.execute(
         select(User).where(
             User.id != current_user.id,
-            User.is_active == True,
+            User.is_active != False,
             or_(
                 User.username.ilike(pattern),
                 User.full_name.ilike(pattern),
@@ -97,10 +98,7 @@ async def search(
             }
             for l in lessons
         ],
-        "news": [
-            {"id": n.id, "title": n.title}
-            for n in news_items
-        ],
+        "news": news_items,
         "users": [
             {
                 "id": u.id,
